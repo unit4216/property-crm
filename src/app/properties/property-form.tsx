@@ -16,15 +16,30 @@ type Action = (
 
 const initialState: FormState = { ok: false };
 
-const labelClass =
-  "block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1";
-const inputClass =
-  "block w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm shadow-sm outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-zinc-400";
+const labelClass = "mb-1 block text-sm font-medium text-ink";
 
 function FieldError({ errors }: { errors?: string[] }) {
   if (!errors?.length) return null;
+  return <p className="mt-1 text-xs text-red-600">{errors[0]}</p>;
+}
+
+function Section({
+  title,
+  hint,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors[0]}</p>
+    <section className="space-y-4 rounded-xl border border-border bg-surface p-6">
+      <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
+        {title}
+        {hint && <span className="ml-2 font-normal text-ink-faint">{hint}</span>}
+      </h2>
+      {children}
+    </section>
   );
 }
 
@@ -43,17 +58,14 @@ export function PropertyForm({
   const errors = state.fieldErrors ?? {};
 
   return (
-    <form action={formAction} className="space-y-6">
+    <form action={formAction} className="space-y-5">
       {state.message && !state.ok && (
-        <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {state.message}
         </div>
       )}
 
-      <section className="space-y-4 rounded-lg border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-        <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wide">
-          Details
-        </h2>
+      <Section title="Details">
         <div>
           <label htmlFor="name" className={labelClass}>
             Name
@@ -63,7 +75,7 @@ export function PropertyForm({
             name="name"
             defaultValue={property?.name ?? ""}
             placeholder="e.g. Maple Street Duplex"
-            className={inputClass}
+            className="field"
           />
           <FieldError errors={errors.name} />
         </div>
@@ -77,7 +89,7 @@ export function PropertyForm({
               id="type"
               name="type"
               defaultValue={property?.type ?? "single_family"}
-              className={inputClass}
+              className="field"
             >
               {Object.entries(PROPERTY_TYPES).map(([value, label]) => (
                 <option key={value} value={value}>
@@ -95,7 +107,7 @@ export function PropertyForm({
               id="status"
               name="status"
               defaultValue={property?.status ?? "active"}
-              className={inputClass}
+              className="field"
             >
               {Object.entries(PROPERTY_STATUSES).map(([value, label]) => (
                 <option key={value} value={value}>
@@ -106,12 +118,9 @@ export function PropertyForm({
             <FieldError errors={errors.status} />
           </div>
         </div>
-      </section>
+      </Section>
 
-      <section className="space-y-4 rounded-lg border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-        <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wide">
-          Address
-        </h2>
+      <Section title="Address">
         <div>
           <label htmlFor="addressLine1" className={labelClass}>
             Street address
@@ -121,20 +130,20 @@ export function PropertyForm({
             name="addressLine1"
             defaultValue={property?.addressLine1 ?? ""}
             placeholder="123 Maple St"
-            className={inputClass}
+            className="field"
           />
           <FieldError errors={errors.addressLine1} />
         </div>
         <div>
           <label htmlFor="addressLine2" className={labelClass}>
-            Unit / Apt <span className="text-zinc-400">(optional)</span>
+            Unit / Apt <span className="text-ink-faint">(optional)</span>
           </label>
           <input
             id="addressLine2"
             name="addressLine2"
             defaultValue={property?.addressLine2 ?? ""}
             placeholder="Unit 2"
-            className={inputClass}
+            className="field"
           />
           <FieldError errors={errors.addressLine2} />
         </div>
@@ -147,7 +156,7 @@ export function PropertyForm({
               id="city"
               name="city"
               defaultValue={property?.city ?? ""}
-              className={inputClass}
+              className="field"
             />
             <FieldError errors={errors.city} />
           </div>
@@ -160,7 +169,7 @@ export function PropertyForm({
               name="state"
               defaultValue={property?.state ?? ""}
               placeholder="CA"
-              className={inputClass}
+              className="field"
             />
             <FieldError errors={errors.state} />
           </div>
@@ -172,17 +181,14 @@ export function PropertyForm({
               id="zip"
               name="zip"
               defaultValue={property?.zip ?? ""}
-              className={inputClass}
+              className="field"
             />
             <FieldError errors={errors.zip} />
           </div>
         </div>
-      </section>
+      </Section>
 
-      <section className="space-y-4 rounded-lg border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-        <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wide">
-          Specs &amp; rent <span className="text-zinc-400">(optional)</span>
-        </h2>
+      <Section title="Specs & rent" hint="(optional)">
         <div className="grid gap-4 sm:grid-cols-4">
           <div>
             <label htmlFor="bedrooms" className={labelClass}>
@@ -194,7 +200,7 @@ export function PropertyForm({
               type="number"
               min="0"
               defaultValue={property?.bedrooms ?? ""}
-              className={inputClass}
+              className="field"
             />
             <FieldError errors={errors.bedrooms} />
           </div>
@@ -209,7 +215,7 @@ export function PropertyForm({
               min="0"
               step="0.5"
               defaultValue={property?.bathrooms ?? ""}
-              className={inputClass}
+              className="field"
             />
             <FieldError errors={errors.bathrooms} />
           </div>
@@ -223,7 +229,7 @@ export function PropertyForm({
               type="number"
               min="0"
               defaultValue={property?.squareFeet ?? ""}
-              className={inputClass}
+              className="field"
             />
             <FieldError errors={errors.squareFeet} />
           </div>
@@ -238,7 +244,7 @@ export function PropertyForm({
               min="0"
               step="1"
               defaultValue={property?.rentAmount ?? ""}
-              className={inputClass}
+              className="field"
             />
             <FieldError errors={errors.rentAmount} />
           </div>
@@ -252,24 +258,17 @@ export function PropertyForm({
             name="notes"
             rows={3}
             defaultValue={property?.notes ?? ""}
-            className={inputClass}
+            className="field"
           />
           <FieldError errors={errors.notes} />
         </div>
-      </section>
+      </Section>
 
       <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
-        >
+        <button type="submit" disabled={pending} className="btn btn-primary">
           {pending ? "Saving…" : submitLabel}
         </button>
-        <Link
-          href={cancelHref}
-          className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
-        >
+        <Link href={cancelHref} className="btn btn-secondary">
           Cancel
         </Link>
       </div>

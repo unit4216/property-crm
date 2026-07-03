@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getProperty } from "@/db/queries";
 import { StatusBadge } from "@/components/badge";
+import { PropertyAvatar } from "@/components/property-avatar";
 import { PROPERTY_TYPES } from "@/lib/validation";
 import {
   formatAddressLine,
@@ -13,13 +14,27 @@ import { DeleteButton } from "../delete-button";
 
 export const dynamic = "force-dynamic";
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: string;
+  accent?: boolean;
+}) {
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-      <dt className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
+    <div className="rounded-xl border border-border bg-surface p-4">
+      <dt className="text-xs font-medium uppercase tracking-wide text-ink-muted">
         {label}
       </dt>
-      <dd className="mt-1 text-lg font-semibold">{value}</dd>
+      <dd
+        className={`mt-1 text-lg font-semibold ${
+          accent ? "text-positive" : "text-ink"
+        }`}
+      >
+        {value}
+      </dd>
     </div>
   );
 }
@@ -36,32 +51,32 @@ export default async function PropertyDetailPage({
 
   return (
     <div>
-      <Link
-        href="/"
-        className="text-sm text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
-      >
+      <Link href="/" className="text-sm text-ink-muted hover:text-ink">
         ← Back to properties
       </Link>
 
-      <div className="mt-2 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              {property.name}
-            </h1>
-            <StatusBadge status={property.status} />
+      <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
+        <div className="flex items-start gap-4">
+          <PropertyAvatar name={property.name} size="lg" />
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-semibold tracking-tight">
+                {property.name}
+              </h1>
+              <StatusBadge status={property.status} />
+            </div>
+            <p className="mt-1 text-ink-muted">
+              {formatAddressLine(property)} · {formatCityLine(property)}
+            </p>
+            <p className="mt-0.5 text-sm text-ink-faint">
+              {PROPERTY_TYPES[property.type]}
+            </p>
           </div>
-          <p className="mt-1 text-zinc-500 dark:text-zinc-400">
-            {formatAddressLine(property)} · {formatCityLine(property)}
-          </p>
-          <p className="mt-0.5 text-sm text-zinc-400">
-            {PROPERTY_TYPES[property.type]}
-          </p>
         </div>
         <div className="flex items-center gap-3">
           <Link
             href={`/properties/${property.id}/edit`}
-            className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+            className="btn btn-secondary"
           >
             Edit
           </Link>
@@ -72,18 +87,11 @@ export default async function PropertyDetailPage({
       <dl className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
         <Stat
           label="Rent / mo"
-          value={
-            property.rentAmount ? formatMoney(property.rentAmount) : "—"
-          }
+          value={property.rentAmount ? formatMoney(property.rentAmount) : "—"}
+          accent={!!property.rentAmount}
         />
-        <Stat
-          label="Beds"
-          value={property.bedrooms?.toString() ?? "—"}
-        />
-        <Stat
-          label="Baths"
-          value={property.bathrooms ?? "—"}
-        />
+        <Stat label="Beds" value={property.bedrooms?.toString() ?? "—"} />
+        <Stat label="Baths" value={property.bathrooms ?? "—"} />
         <Stat
           label="Sq ft"
           value={property.squareFeet?.toLocaleString() ?? "—"}
@@ -91,15 +99,15 @@ export default async function PropertyDetailPage({
       </dl>
 
       {property.notes && (
-        <section className="mt-6 rounded-lg border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-          <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wide">
+        <section className="mt-6 rounded-xl border border-border bg-surface p-6">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
             Notes
           </h2>
           <p className="mt-2 whitespace-pre-wrap text-sm">{property.notes}</p>
         </section>
       )}
 
-      <p className="mt-6 text-xs text-zinc-400">
+      <p className="mt-6 text-xs text-ink-faint">
         Added {formatDate(property.createdAt)} · Updated{" "}
         {formatDate(property.updatedAt)}
       </p>
