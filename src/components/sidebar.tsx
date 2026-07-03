@@ -8,7 +8,26 @@ import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import Typography from "@mui/material/Typography";
+
+function GridIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <rect x="3" y="3" width="8" height="8" rx="1.5" />
+      <rect x="13" y="3" width="8" height="8" rx="1.5" />
+      <rect x="3" y="13" width="8" height="8" rx="1.5" />
+      <rect x="13" y="13" width="8" height="8" rx="1.5" />
+    </svg>
+  );
+}
 
 function BuildingIcon({ className }: { className?: string }) {
   return (
@@ -88,7 +107,8 @@ function LogoMark() {
 }
 
 const nav = [
-  { href: "/", label: "Properties", icon: BuildingIcon, match: /^\/($|properties)/ },
+  { href: "/", label: "Dashboard", icon: GridIcon, match: /^\/$/ },
+  { href: "/properties", label: "Properties", icon: BuildingIcon, match: /^\/properties/ },
   { href: "/tenants", label: "Tenants", icon: UsersIcon, match: /^\/tenants/ },
   { href: "/leases", label: "Leases", icon: LeaseIcon, match: /^\/leases/ },
 ];
@@ -119,22 +139,7 @@ export function Sidebar() {
       </Box>
 
       <Box sx={{ flex: 1, px: 1.5 }}>
-        <Typography
-          variant="caption"
-          sx={{
-            display: "block",
-            px: 1,
-            pb: 0.5,
-            pt: 1,
-            fontWeight: 500,
-            textTransform: "uppercase",
-            letterSpacing: "0.03em",
-            color: "var(--ink-faint)",
-          }}
-        >
-          Portfolio
-        </Typography>
-        <List disablePadding sx={{ display: "flex", flexDirection: "column", gap: 0.25 }}>
+        <List disablePadding sx={{ display: "flex", flexDirection: "column", gap: 0.25, mt: 1 }}>
           {nav.map(({ href, label, icon: Icon, match }) => {
             const active = match.test(pathname);
             return (

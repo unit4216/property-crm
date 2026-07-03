@@ -14,7 +14,7 @@ export default function NotFound() {
         It may have been deleted.
       </Typography>
       <Box sx={{ mt: 2 }}>
-        <Link href="/">
+        <Link href="/properties">
           <Button variant="contained" component="span">
             Back to properties
           </Button>

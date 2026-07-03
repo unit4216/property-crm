@@ -80,7 +80,7 @@ export default async function PropertyDetailPage({
 
   return (
     <div>
-      <Link href="/" className="text-sm text-ink-muted hover:text-ink">
+      <Link href="/properties" className="text-sm text-ink-muted hover:text-ink">
         ← Back to properties
       </Link>
 
