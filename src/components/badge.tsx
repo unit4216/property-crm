@@ -2,22 +2,17 @@ import type { Property } from "@/db/schema";
 import { PROPERTY_STATUSES } from "@/lib/validation";
 
 const STATUS_STYLES: Record<Property["status"], string> = {
-  active:
-    "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
-  occupied:
-    "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
-  vacant:
-    "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
-  under_maintenance:
-    "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300",
-  listed:
-    "bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-300",
+  active: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+  occupied: "bg-blue-50 text-blue-700 ring-blue-600/20",
+  vacant: "bg-amber-50 text-amber-700 ring-amber-600/20",
+  under_maintenance: "bg-orange-50 text-orange-700 ring-orange-600/20",
+  listed: "bg-violet-50 text-violet-700 ring-violet-600/20",
 };
 
 export function StatusBadge({ status }: { status: Property["status"] }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_STYLES[status]}`}
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${STATUS_STYLES[status]}`}
     >
       {PROPERTY_STATUSES[status]}
     </span>

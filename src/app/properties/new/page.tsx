@@ -6,14 +6,11 @@ export const metadata = { title: "New property · Property CRM" };
 
 export default function NewPropertyPage() {
   return (
-    <div>
-      <Link
-        href="/"
-        className="text-sm text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
-      >
+    <div className="mx-auto max-w-2xl">
+      <Link href="/" className="text-sm text-ink-muted hover:text-ink">
         ← Back to properties
       </Link>
-      <h1 className="mt-2 mb-6 text-2xl font-semibold tracking-tight">
+      <h1 className="mb-6 mt-3 text-3xl font-semibold tracking-tight">
         New property
       </h1>
       <PropertyForm
