@@ -2,8 +2,9 @@
 
 /*
  * Ramp-inspired design system.
- * Warm off-white canvas, crisp white surfaces, hairline borders,
- * near-black ink, and a single lime-green accent.
+ * White page surface, warm off-white canvas reserved for the sidebar
+ * and a few muted panels, hairline borders, near-black ink, and a
+ * single lime-green accent.
  */
 :root {
   --canvas: #f6f6f4;
@@ -43,7 +44,7 @@ html {
 }
 
 body {
-  background: var(--canvas);
+  background: var(--surface);
   color: var(--ink);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
