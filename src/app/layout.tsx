@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/sidebar";
+import { MuiThemeRegistry } from "@/components/mui-theme-registry";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,14 +30,16 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        <div className="flex min-h-screen">
-          <Sidebar />
-          <div className="flex-1 overflow-x-hidden">
-            <main className="mx-auto w-full max-w-5xl px-8 py-8">
-              {children}
-            </main>
+        <MuiThemeRegistry>
+          <div className="flex min-h-screen">
+            <Sidebar />
+            <div className="flex-1 overflow-x-hidden">
+              <main className="mx-auto w-full max-w-5xl px-8 py-8">
+                {children}
+              </main>
+            </div>
           </div>
-        </div>
+        </MuiThemeRegistry>
       </body>
     </html>
   );

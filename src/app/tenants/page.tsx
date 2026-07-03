@@ -1,4 +1,9 @@
 import Link from "next/link";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
 import { getTenants } from "@/db/queries";
 import { Avatar } from "@/components/avatar";
 
@@ -54,36 +59,47 @@ export default async function TenantsPage() {
         </div>
       ) : (
         <div className="mt-6 bg-surface">
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-border px-5 py-2.5 text-xs font-medium text-ink-muted sm:grid-cols-[minmax(0,2fr)_minmax(0,2fr)_auto]">
-            <span>Tenant</span>
-            <span className="hidden sm:block">Contact</span>
-            <span className="justify-self-end sm:hidden" />
-          </div>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Tenant</TableCell>
+                <TableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
+                  Contact
+                </TableCell>
+                <TableCell align="right" sx={{ width: 1 }} />
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {tenants.map((t) => (
+                <TableRow key={t.id} hover sx={{ position: "relative" }}>
+                  <TableCell>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <Avatar name={t.name} />
+                      <Link
+                        href={`/tenants/${t.id}`}
+                        className="block truncate font-medium after:absolute after:inset-0 after:content-['']"
+                      >
+                        {t.name}
+                      </Link>
+                    </div>
+                  </TableCell>
 
-          <ul>
-            {tenants.map((t) => (
-              <li key={t.id} className="border-b border-border last:border-0">
-                <Link
-                  href={`/tenants/${t.id}`}
-                  className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-3.5 transition-colors hover:bg-surface-muted sm:grid-cols-[minmax(0,2fr)_minmax(0,2fr)_auto]"
-                >
-                  <div className="flex min-w-0 items-center gap-3">
-                    <Avatar name={t.name} />
-                    <p className="truncate font-medium">{t.name}</p>
-                  </div>
-
-                  <div className="hidden min-w-0 sm:block">
+                  <TableCell
+                    sx={{ display: { xs: "none", sm: "table-cell" } }}
+                  >
                     <p className="truncate text-sm">{t.email ?? "—"}</p>
                     <p className="truncate text-sm text-ink-muted">
                       {t.phone ?? ""}
                     </p>
-                  </div>
+                  </TableCell>
 
-                  <ChevronRight />
-                </Link>
-              </li>
-            ))}
-          </ul>
+                  <TableCell align="right">
+                    <ChevronRight />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>

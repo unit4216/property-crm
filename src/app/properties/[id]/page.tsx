@@ -1,5 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableRow from "@mui/material/TableRow";
 import { getProperty, getPropertyLeases } from "@/db/queries";
 import { StatusBadge, LeaseStatusBadge } from "@/components/badge";
 import { Avatar } from "@/components/avatar";
@@ -163,34 +167,37 @@ export default async function PropertyDetailPage({
           <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
             Lease history
           </h2>
-          <ul className="mt-2 bg-surface">
-            {pastLeases.map((lease) => (
-              <li
-                key={lease.id}
-                className="border-b border-border py-3.5 last:border-0"
-              >
-                <div className="flex items-center justify-between gap-4">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">
-                      {lease.tenants.map((t) => t.name).join(", ")}
-                    </p>
-                    <p className="mt-0.5 text-xs text-ink-faint">
-                      {formatDate(new Date(lease.startDate))} –{" "}
-                      {lease.endDate
-                        ? formatDate(new Date(lease.endDate))
-                        : "present"}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm tabular-nums text-ink-muted">
-                      {formatMoney(lease.rentAmount)}
-                    </span>
-                    <LeaseStatusBadge status={lease.status} />
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <div className="mt-2 bg-surface">
+            <Table>
+              <TableBody>
+                {pastLeases.map((lease) => (
+                  <TableRow key={lease.id}>
+                    <TableCell sx={{ px: 0 }}>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">
+                          {lease.tenants.map((t) => t.name).join(", ")}
+                        </p>
+                        <p className="mt-0.5 text-xs text-ink-faint">
+                          {formatDate(new Date(lease.startDate))} –{" "}
+                          {lease.endDate
+                            ? formatDate(new Date(lease.endDate))
+                            : "present"}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell align="right" sx={{ px: 0 }}>
+                      <div className="flex items-center justify-end gap-3">
+                        <span className="text-sm tabular-nums text-ink-muted">
+                          {formatMoney(lease.rentAmount)}
+                        </span>
+                        <LeaseStatusBadge status={lease.status} />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </section>
       )}
 

@@ -1,4 +1,9 @@
 import Link from "next/link";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
 import { getProperties } from "@/db/queries";
 import { StatusBadge } from "@/components/badge";
 import { Avatar } from "@/components/avatar";
@@ -106,53 +111,70 @@ export default async function HomePage() {
         </div>
       ) : (
         <div className="mt-6 bg-surface">
-          {/* Header */}
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-border px-5 py-2.5 text-xs font-medium text-ink-muted sm:grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)_auto_auto]">
-            <span>Property</span>
-            <span className="hidden sm:block">Location</span>
-            <span className="hidden justify-self-end sm:block">Status</span>
-            <span className="justify-self-end">Rent / mo</span>
-          </div>
-
-          {/* Rows */}
-          <ul>
-            {properties.map((p) => (
-              <li key={p.id} className="border-b border-border last:border-0">
-                <Link
-                  href={`/properties/${p.id}`}
-                  className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-3.5 transition-colors hover:bg-surface-muted sm:grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)_auto_auto]"
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Property</TableCell>
+                <TableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
+                  Location
+                </TableCell>
+                <TableCell
+                  align="right"
+                  sx={{ display: { xs: "none", sm: "table-cell" } }}
                 >
-                  <div className="flex min-w-0 items-center gap-3">
-                    <Avatar name={p.name} />
-                    <div className="min-w-0">
-                      <p className="truncate font-medium">{p.name}</p>
-                      <p className="truncate text-sm text-ink-muted">
-                        {PROPERTY_TYPES[p.type]}
-                      </p>
+                  Status
+                </TableCell>
+                <TableCell align="right">Rent / mo</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {properties.map((p) => (
+                <TableRow key={p.id} hover sx={{ position: "relative" }}>
+                  <TableCell>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <Avatar name={p.name} />
+                      <div className="min-w-0">
+                        <Link
+                          href={`/properties/${p.id}`}
+                          className="block truncate font-medium after:absolute after:inset-0 after:content-['']"
+                        >
+                          {p.name}
+                        </Link>
+                        <p className="truncate text-sm text-ink-muted">
+                          {PROPERTY_TYPES[p.type]}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  </TableCell>
 
-                  <div className="hidden min-w-0 sm:block">
+                  <TableCell
+                    sx={{ display: { xs: "none", sm: "table-cell" } }}
+                  >
                     <p className="truncate text-sm">{p.city}</p>
                     <p className="truncate text-sm text-ink-muted">
                       {formatCityLine(p)}
                     </p>
-                  </div>
+                  </TableCell>
 
-                  <div className="hidden justify-self-end sm:block">
+                  <TableCell
+                    align="right"
+                    sx={{ display: { xs: "none", sm: "table-cell" } }}
+                  >
                     <StatusBadge status={p.status} />
-                  </div>
+                  </TableCell>
 
-                  <div className="flex items-center justify-self-end gap-3">
-                    <span className="font-medium tabular-nums">
-                      {p.rentAmount ? formatMoney(p.rentAmount) : "—"}
-                    </span>
-                    <ChevronRight />
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
+                  <TableCell align="right">
+                    <div className="flex items-center justify-end gap-3">
+                      <span className="font-medium tabular-nums">
+                        {p.rentAmount ? formatMoney(p.rentAmount) : "—"}
+                      </span>
+                      <ChevronRight />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>

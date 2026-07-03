@@ -1,5 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableRow from "@mui/material/TableRow";
 import { getTenant, getTenantLeases } from "@/db/queries";
 import { LeaseStatusBadge } from "@/components/badge";
 import { Avatar } from "@/components/avatar";
@@ -68,48 +72,53 @@ export default async function TenantDetailPage({
         {leases.length === 0 ? (
           <p className="mt-2 text-sm text-ink-muted">No leases yet.</p>
         ) : (
-          <ul className="mt-2 bg-surface">
-            {leases.map((lease) => (
-              <li
-                key={lease.id}
-                className="border-b border-border py-3.5 last:border-0"
-              >
-                <div className="flex items-center justify-between gap-4">
-                  <div className="min-w-0">
-                    <Link
-                      href={`/properties/${lease.property.id}`}
-                      className="font-medium hover:underline"
-                    >
-                      {lease.property.name}
-                    </Link>
-                    <p className="truncate text-sm text-ink-muted">
-                      {formatCityLine(lease.property)}
-                    </p>
-                    <p className="mt-1 text-xs text-ink-faint">
-                      {formatDate(new Date(lease.startDate))} –{" "}
-                      {lease.endDate ? formatDate(new Date(lease.endDate)) : "present"}
-                      {lease.tenants.length > 1 && (
-                        <>
-                          {" "}
-                          · with{" "}
-                          {lease.tenants
-                            .filter((t) => t.id !== tenant.id)
-                            .map((t) => t.name)
-                            .join(", ")}
-                        </>
-                      )}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-medium tabular-nums">
-                      {formatMoney(lease.rentAmount)}
-                    </span>
-                    <LeaseStatusBadge status={lease.status} />
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <div className="mt-2 bg-surface">
+            <Table>
+              <TableBody>
+                {leases.map((lease) => (
+                  <TableRow key={lease.id}>
+                    <TableCell sx={{ px: 0 }}>
+                      <div className="min-w-0">
+                        <Link
+                          href={`/properties/${lease.property.id}`}
+                          className="font-medium hover:underline"
+                        >
+                          {lease.property.name}
+                        </Link>
+                        <p className="truncate text-sm text-ink-muted">
+                          {formatCityLine(lease.property)}
+                        </p>
+                        <p className="mt-1 text-xs text-ink-faint">
+                          {formatDate(new Date(lease.startDate))} –{" "}
+                          {lease.endDate
+                            ? formatDate(new Date(lease.endDate))
+                            : "present"}
+                          {lease.tenants.length > 1 && (
+                            <>
+                              {" "}
+                              · with{" "}
+                              {lease.tenants
+                                .filter((t) => t.id !== tenant.id)
+                                .map((t) => t.name)
+                                .join(", ")}
+                            </>
+                          )}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell align="right" sx={{ px: 0 }}>
+                      <div className="flex items-center justify-end gap-3">
+                        <span className="font-medium tabular-nums">
+                          {formatMoney(lease.rentAmount)}
+                        </span>
+                        <LeaseStatusBadge status={lease.status} />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </section>
     </div>
