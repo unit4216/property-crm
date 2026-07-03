@@ -40,6 +40,24 @@ function PlusIcon({ className }: { className?: string }) {
   );
 }
 
+// Abstract duotone logo mark — two overlapping discs (an "eclipse") using the
+// brand's ink + lime accent, drawn directly on the canvas (no tile).
+function LogoMark() {
+  return (
+    <svg width="40" height="40" viewBox="0 0 24 24" aria-hidden>
+      <circle cx="8" cy="12" r="5.5" fill="var(--ink)" />
+      <circle
+        cx="16"
+        cy="12"
+        r="5.5"
+        fill="var(--accent)"
+        stroke="var(--ink)"
+        strokeWidth="1"
+      />
+    </svg>
+  );
+}
+
 const nav = [
   { href: "/", label: "Properties", icon: BuildingIcon, match: /^\/($|properties)/ },
 ];
@@ -50,11 +68,8 @@ export function Sidebar() {
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-canvas">
       <div className="px-5 py-5">
-        <Link href="/" className="flex items-center gap-2 font-semibold">
-          <span className="grid size-7 place-items-center rounded-md bg-ink text-sm text-white">
-            🏠
-          </span>
-          <span className="tracking-tight">Property CRM</span>
+        <Link href="/" className="flex items-center" aria-label="Property CRM">
+          <LogoMark />
         </Link>
       </div>
 
