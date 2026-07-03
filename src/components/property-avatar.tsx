@@ -34,7 +34,7 @@ export function PropertyAvatar({
   const dim = size === "lg" ? "size-11 text-sm" : "size-9 text-xs";
   return (
     <span
-      className={`grid shrink-0 place-items-center rounded-lg font-semibold ${dim} ${colorFor(
+      className={`grid shrink-0 place-items-center rounded font-semibold ${dim} ${colorFor(
         name,
       )}`}
       aria-hidden

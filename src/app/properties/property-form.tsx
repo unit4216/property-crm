@@ -33,7 +33,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="space-y-4 rounded-xl border border-border bg-surface p-6">
+    <section className="space-y-4 rounded-md border border-border bg-surface p-6">
       <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
         {title}
         {hint && <span className="ml-2 font-normal text-ink-faint">{hint}</span>}
@@ -60,7 +60,7 @@ export function PropertyForm({
   return (
     <form action={formAction} className="space-y-5">
       {state.message && !state.ok && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {state.message}
         </div>
       )}

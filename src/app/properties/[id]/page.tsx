@@ -24,7 +24,7 @@ function Stat({
   accent?: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-surface p-4">
+    <div>
       <dt className="text-xs font-medium uppercase tracking-wide text-ink-muted">
         {label}
       </dt>
@@ -84,7 +84,7 @@ export default async function PropertyDetailPage({
         </div>
       </div>
 
-      <dl className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <dl className="mt-6 flex flex-wrap gap-8">
         <Stat
           label="Rent / mo"
           value={property.rentAmount ? formatMoney(property.rentAmount) : "—"}
@@ -99,7 +99,7 @@ export default async function PropertyDetailPage({
       </dl>
 
       {property.notes && (
-        <section className="mt-6 rounded-xl border border-border bg-surface p-6">
+        <section className="mt-6 rounded-md border border-border bg-surface p-6">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
             Notes
           </h2>

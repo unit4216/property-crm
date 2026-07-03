@@ -18,7 +18,7 @@ function StatTile({
   accent?: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-surface px-5 py-4">
+    <div>
       <p className="text-sm text-ink-muted">{label}</p>
       <p
         className={`mt-1 text-2xl font-semibold tracking-tight ${
@@ -80,7 +80,7 @@ export default async function HomePage() {
       </div>
 
       {/* Stat tiles */}
-      <div className="mt-6 grid gap-4 sm:grid-cols-3">
+      <div className="mt-6 flex flex-wrap gap-10">
         <StatTile
           label="Monthly rent roll"
           value={formatMoney(rentRoll.toString())}
@@ -95,7 +95,7 @@ export default async function HomePage() {
 
       {/* Table */}
       {properties.length === 0 ? (
-        <div className="mt-6 rounded-xl border border-dashed border-border-strong bg-surface p-12 text-center">
+        <div className="mt-6 rounded-md border border-dashed border-border-strong bg-surface p-12 text-center">
           <p className="text-ink-muted">No properties yet.</p>
           <Link
             href="/properties/new"
@@ -105,7 +105,7 @@ export default async function HomePage() {
           </Link>
         </div>
       ) : (
-        <div className="mt-6 overflow-hidden rounded-xl border border-border bg-surface">
+        <div className="mt-6 bg-surface">
           {/* Header */}
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-border px-5 py-2.5 text-xs font-medium text-ink-muted sm:grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)_auto_auto]">
             <span>Property</span>

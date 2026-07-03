@@ -83,7 +83,7 @@ export function Sidebar() {
             <Link
               key={href}
               href={href}
-              className={`mt-0.5 flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors ${
+              className={`mt-0.5 flex items-center gap-2.5 rounded px-2 py-1.5 text-sm transition-colors ${
                 active
                   ? "bg-white font-medium text-ink shadow-[0_1px_2px_rgba(0,0,0,0.04)] ring-1 ring-border"
                   : "text-ink-muted hover:bg-white/60 hover:text-ink"
@@ -99,7 +99,7 @@ export function Sidebar() {
       <div className="p-3">
         <Link
           href="/properties/new"
-          className="flex items-center justify-center gap-1.5 rounded-md border border-border-strong bg-surface px-2 py-1.5 text-sm font-medium text-ink transition-colors hover:bg-surface-muted"
+          className="flex items-center justify-center gap-1.5 rounded border border-border-strong bg-surface px-2 py-1.5 text-sm font-medium text-ink transition-colors hover:bg-surface-muted"
         >
           <PlusIcon className="size-4" />
           New property
