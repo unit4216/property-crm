@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import Drawer from "@mui/material/Drawer";
 import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
@@ -47,23 +46,6 @@ function UsersIcon({ className }: { className?: string }) {
       <circle cx="10" cy="7" r="4" />
       <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
       <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  );
-}
-
-function PlusIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M12 5v14M5 12h14" />
     </svg>
   );
 }
@@ -174,18 +156,6 @@ export function Sidebar() {
             );
           })}
         </List>
-      </Box>
-
-      <Box sx={{ p: 1.5 }}>
-        <Button
-          variant="outlined"
-          fullWidth
-          component={Link}
-          href={pathname.startsWith("/tenants") ? "/tenants/new" : "/properties/new"}
-          startIcon={<PlusIcon className="size-4" />}
-        >
-          {pathname.startsWith("/tenants") ? "New tenant" : "New property"}
-        </Button>
       </Box>
     </Drawer>
   );
