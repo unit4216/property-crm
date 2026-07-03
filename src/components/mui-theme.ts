@@ -85,13 +85,14 @@ export const theme = createTheme({
           fontWeight: 500,
           color: "var(--ink-muted)",
           padding: "10px 20px",
+          borderBottom: "1px solid var(--border-strong)",
         },
       },
     },
     MuiTableRow: {
       styleOverrides: {
         root: {
-          "&:last-child .MuiTableCell-root": {
+          "tbody &:last-child .MuiTableCell-root": {
             borderBottom: "none",
           },
         },
