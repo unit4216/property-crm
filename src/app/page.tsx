@@ -1,72 +1,122 @@
 import Link from "next/link";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import { getProperties } from "@/db/queries";
-import { StatusBadge } from "@/components/badge";
-import { Avatar } from "@/components/avatar";
-import { PROPERTY_TYPES } from "@/lib/validation";
-import { formatCityLine, formatMoney } from "@/lib/format";
+import { getProperties, getTenants, getAllLeases } from "@/db/queries";
+import { StatTile } from "@/components/stat-tile";
+import {
+  PropertyStatusChart,
+  PropertyTypeChart,
+  LeaseStatusChart,
+} from "@/components/dashboard-charts";
+import type { Property, Lease } from "@/db/schema";
+import { PROPERTY_TYPES, PROPERTY_STATUSES, LEASE_STATUSES } from "@/lib/validation";
+import { formatCityLine, formatDate, formatMoney } from "@/lib/format";
 
 // Always render fresh from the database.
 export const dynamic = "force-dynamic";
 
-function StatTile({
-  label,
-  value,
-  accent,
+const LEASE_EXPIRY_WINDOW_DAYS = 30;
+
+// Slots 1-5 of the validated categorical order (blue, aqua, yellow, green,
+// violet), assigned in the same order as propertyStatusEnum so the mapping
+// is stable as statuses come and go.
+const PROPERTY_STATUS_COLORS: Record<Property["status"], string> = {
+  active: "#2a78d6",
+  vacant: "#1baf7a",
+  occupied: "#eda100",
+  under_maintenance: "#008300",
+  listed: "#4a3aa7",
+};
+
+// Slots 1-3 of the same order, assigned in leaseStatusEnum order.
+const LEASE_STATUS_COLORS: Record<Lease["status"], string> = {
+  upcoming: "#2a78d6",
+  active: "#1baf7a",
+  ended: "#eda100",
+};
+
+function daysFromNow(days: number) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+type ListRow = {
+  href: string;
+  primary: string;
+  secondary: string;
+  meta?: string;
+};
+
+function ListCard({
+  title,
+  count,
+  emptyMessage,
+  rows,
 }: {
-  label: string;
-  value: string;
-  accent?: boolean;
+  title: string;
+  count: number;
+  emptyMessage: string;
+  rows: ListRow[];
 }) {
   return (
-    <div>
-      <Typography variant="body2" sx={{ color: "var(--ink-muted)" }}>
-        {label}
-      </Typography>
-      <Typography
-        variant="h5"
-        sx={{
-          mt: 0.5,
-          fontWeight: 600,
-          letterSpacing: "-0.01em",
-          color: accent ? "var(--positive)" : "var(--ink)",
-        }}
+    <Paper variant="outlined">
+      <div
+        className="flex items-center justify-between px-4 py-3"
+        style={{ borderBottom: "1px solid var(--border)" }}
       >
-        {value}
-      </Typography>
-    </div>
+        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+          {title}
+        </Typography>
+        <span className="text-sm tabular-nums text-ink-muted">{count}</span>
+      </div>
+      {rows.length === 0 ? (
+        <p className="px-4 py-6 text-center text-sm text-ink-muted">
+          {emptyMessage}
+        </p>
+      ) : (
+        <ul>
+          {rows.map((row, i) => (
+            <li
+              key={row.href + i}
+              style={
+                i < rows.length - 1
+                  ? { borderBottom: "1px solid var(--border)" }
+                  : undefined
+              }
+            >
+              <Link
+                href={row.href}
+                className="flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-[var(--surface-muted)]"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">{row.primary}</p>
+                  <p className="truncate text-sm text-ink-muted">
+                    {row.secondary}
+                  </p>
+                </div>
+                {row.meta && (
+                  <span className="shrink-0 text-sm tabular-nums text-ink-muted">
+                    {row.meta}
+                  </span>
+                )}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Paper>
   );
 }
 
-function ChevronRight() {
-  return (
-    <svg
-      className="size-4 text-ink-faint"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="m9 18 6-6-6-6" />
-    </svg>
-  );
-}
+export default async function DashboardPage() {
+  const [properties, tenants, leases] = await Promise.all([
+    getProperties(),
+    getTenants(),
+    getAllLeases(),
+  ]);
 
-export default async function HomePage() {
-  const properties = await getProperties();
-
+  // Stat tiles
   const rentRoll = properties.reduce(
     (sum, p) => sum + (p.rentAmount ? Number(p.rentAmount) : 0),
     0,
@@ -74,27 +124,79 @@ export default async function HomePage() {
   const occupied = properties.filter(
     (p) => p.status === "occupied" || p.status === "active",
   ).length;
+  const occupancyRate =
+    properties.length > 0 ? Math.round((occupied / properties.length) * 100) : 0;
+  const activeLeaseCount = leases.filter((l) => l.status === "active").length;
+
+  // Properties by status
+  const propertyStatusData = (
+    Object.keys(PROPERTY_STATUSES) as Property["status"][]
+  )
+    .map((status) => ({
+      id: status,
+      value: properties.filter((p) => p.status === status).length,
+      label: PROPERTY_STATUSES[status],
+      color: PROPERTY_STATUS_COLORS[status],
+    }))
+    .filter((d) => d.value > 0);
+
+  // Properties by type. Uses a shorter label than PROPERTY_TYPES for the
+  // single-family case so it fits the chart's category axis without eliding.
+  const propertyTypeDataset = (Object.keys(PROPERTY_TYPES) as Property["type"][])
+    .map((type) => ({
+      label: type === "single_family" ? "Single-family" : PROPERTY_TYPES[type],
+      count: properties.filter((p) => p.type === type).length,
+    }))
+    .filter((d) => d.count > 0);
+
+  // Leases by status
+  const leaseStatusData = (Object.keys(LEASE_STATUSES) as Lease["status"][])
+    .map((status) => ({
+      id: status,
+      value: leases.filter((l) => l.status === status).length,
+      label: LEASE_STATUSES[status],
+      color: LEASE_STATUS_COLORS[status],
+    }))
+    .filter((d) => d.value > 0);
+
+  // Leases ending within the window, soonest first.
+  const expiryCutoff = daysFromNow(LEASE_EXPIRY_WINDOW_DAYS);
+  const expiringLeases = leases
+    .filter(
+      (l) => l.status === "active" && l.endDate && new Date(l.endDate) <= expiryCutoff,
+    )
+    .sort(
+      (a, b) => new Date(a.endDate!).getTime() - new Date(b.endDate!).getTime(),
+    );
+
+  const vacantProperties = properties.filter(
+    (p) => p.status === "vacant" || p.status === "listed",
+  );
+
+  // Signed but not yet started, soonest first.
+  const upcomingLeases = leases
+    .filter((l) => l.status === "upcoming")
+    .sort(
+      (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
+    );
+
+  const tenantIdsWithActiveLease = new Set(
+    leases
+      .filter((l) => l.status === "active")
+      .flatMap((l) => l.tenants.map((t) => t.id)),
+  );
+  const idleTenants = tenants.filter((t) => !tenantIdsWithActiveLease.has(t.id));
 
   return (
     <div>
-      {/* Page header */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-sm font-medium text-ink-muted">Portfolio</p>
-          <h1 className="mt-1 text-4xl font-semibold tracking-tight">
-            Properties
-          </h1>
-          <p className="mt-2 text-sm text-ink-muted">
-            {properties.length}{" "}
-            {properties.length === 1 ? "property" : "properties"} under
-            management.
-          </p>
-        </div>
-        <Link href="/properties/new">
-          <Button variant="contained" component="span">
-            New property
-          </Button>
-        </Link>
+      <div>
+        <p className="text-sm font-medium text-ink-muted">Portfolio</p>
+        <h1 className="mt-1 text-4xl font-semibold tracking-tight">
+          Dashboard
+        </h1>
+        <p className="mt-2 text-sm text-ink-muted">
+          An overview of your portfolio.
+        </p>
       </div>
 
       {/* Stat tiles */}
@@ -105,94 +207,72 @@ export default async function HomePage() {
           accent
         />
         <StatTile label="Total properties" value={properties.length.toString()} />
-        <StatTile
-          label="Active / occupied"
-          value={`${occupied} of ${properties.length}`}
-        />
+        <StatTile label="Total tenants" value={tenants.length.toString()} />
+        <StatTile label="Active leases" value={activeLeaseCount.toString()} />
+        <StatTile label="Occupancy rate" value={`${occupancyRate}%`} />
       </div>
 
-      {/* Table */}
-      {properties.length === 0 ? (
-        <Paper variant="outlined" sx={{ mt: 3, p: 6, textAlign: "center", borderStyle: "dashed" }}>
-          <Typography sx={{ color: "var(--ink-muted)" }}>
-            No properties yet.
-          </Typography>
-          <Box sx={{ mt: 2 }}>
-            <Link href="/properties/new">
-              <Button variant="contained" component="span">
-                Add your first property
-              </Button>
-            </Link>
-          </Box>
-        </Paper>
-      ) : (
-        <Stack sx={{ mt: 3, bgcolor: "var(--surface)" }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Property</TableCell>
-                <TableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
-                  Location
-                </TableCell>
-                <TableCell
-                  align="right"
-                  sx={{ display: { xs: "none", sm: "table-cell" } }}
-                >
-                  Status
-                </TableCell>
-                <TableCell align="right">Rent / mo</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {properties.map((p) => (
-                <TableRow key={p.id} hover sx={{ position: "relative" }}>
-                  <TableCell>
-                    <div className="flex min-w-0 items-center gap-3">
-                      <Avatar name={p.name} />
-                      <div className="min-w-0">
-                        <Link
-                          href={`/properties/${p.id}`}
-                          className="block truncate font-medium after:absolute after:inset-0 after:content-['']"
-                        >
-                          {p.name}
-                        </Link>
-                        <p className="truncate text-sm text-ink-muted">
-                          {PROPERTY_TYPES[p.type]}
-                        </p>
-                      </div>
-                    </div>
-                  </TableCell>
+      {/* Charts */}
+      <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <PropertyStatusChart data={propertyStatusData} />
+        <LeaseStatusChart data={leaseStatusData} />
+      </div>
 
-                  <TableCell
-                    sx={{ display: { xs: "none", sm: "table-cell" } }}
-                  >
-                    <p className="truncate text-sm">{p.city}</p>
-                    <p className="truncate text-sm text-ink-muted">
-                      {formatCityLine(p)}
-                    </p>
-                  </TableCell>
+      <div className="mt-4">
+        <PropertyTypeChart dataset={propertyTypeDataset} />
+      </div>
 
-                  <TableCell
-                    align="right"
-                    sx={{ display: { xs: "none", sm: "table-cell" } }}
-                  >
-                    <StatusBadge status={p.status} />
-                  </TableCell>
-
-                  <TableCell align="right">
-                    <div className="flex items-center justify-end gap-3">
-                      <span className="font-medium tabular-nums">
-                        {p.rentAmount ? formatMoney(p.rentAmount) : "—"}
-                      </span>
-                      <ChevronRight />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Stack>
-      )}
+      {/* Attention needed */}
+      <div className="mt-8">
+        <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1.5 }}>
+          Needs attention
+        </Typography>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <ListCard
+            title={`Leases expiring in the next ${LEASE_EXPIRY_WINDOW_DAYS} days`}
+            count={expiringLeases.length}
+            emptyMessage="No leases expiring soon."
+            rows={expiringLeases.map((l) => ({
+              href: `/properties/${l.property.id}`,
+              primary: l.property.name,
+              secondary: l.tenants.map((t) => t.name).join(", ") || "No tenants",
+              meta: formatDate(new Date(l.endDate!)),
+            }))}
+          />
+          <ListCard
+            title="Vacant & listed properties"
+            count={vacantProperties.length}
+            emptyMessage="No vacant or listed properties."
+            rows={vacantProperties.map((p) => ({
+              href: `/properties/${p.id}`,
+              primary: p.name,
+              secondary: formatCityLine(p),
+              meta: p.rentAmount ? formatMoney(p.rentAmount) : undefined,
+            }))}
+          />
+          <ListCard
+            title="Upcoming move-ins"
+            count={upcomingLeases.length}
+            emptyMessage="No upcoming leases."
+            rows={upcomingLeases.map((l) => ({
+              href: `/properties/${l.property.id}`,
+              primary: l.property.name,
+              secondary: l.tenants.map((t) => t.name).join(", ") || "No tenants",
+              meta: formatDate(new Date(l.startDate)),
+            }))}
+          />
+          <ListCard
+            title="Tenants without an active lease"
+            count={idleTenants.length}
+            emptyMessage="Every tenant has an active lease."
+            rows={idleTenants.map((t) => ({
+              href: `/tenants/${t.id}`,
+              primary: t.name,
+              secondary: t.email || t.phone || "No contact info",
+            }))}
+          />
+        </div>
+      </div>
     </div>
   );
 }

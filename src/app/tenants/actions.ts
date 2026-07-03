@@ -40,6 +40,7 @@ export async function createTenant(
   const sessionId = await getSessionId();
   await db.insert(tenants).values({ ...toRow(parsed.data), sessionId });
 
+  revalidatePath("/");
   revalidatePath("/tenants");
   redirect("/tenants");
 }
@@ -74,6 +75,7 @@ export async function deleteTenant(id: string): Promise<void> {
   await db
     .delete(tenants)
     .where(and(eq(tenants.id, id), eq(tenants.sessionId, sessionId)));
+  revalidatePath("/");
   revalidatePath("/tenants");
   redirect("/tenants");
 }

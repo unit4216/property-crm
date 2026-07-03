@@ -56,6 +56,7 @@ export async function createLease(
     .insert(leaseTenants)
     .values(parsed.data.tenantIds.map((tenantId) => ({ leaseId: lease.id, tenantId })));
 
+  revalidatePath("/");
   revalidatePath(`/properties/${propertyId}`);
   revalidatePath("/leases");
   redirect(`/properties/${propertyId}`);
@@ -69,6 +70,7 @@ export async function endLease(id: string, propertyId: string): Promise<void> {
     .set({ status: "ended", endDate: today, updatedAt: new Date() })
     .where(eq(leases.id, id));
 
+  revalidatePath("/");
   revalidatePath(`/properties/${propertyId}`);
   revalidatePath("/tenants");
   revalidatePath("/leases");

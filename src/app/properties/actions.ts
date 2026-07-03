@@ -52,7 +52,8 @@ export async function createProperty(
   await db.insert(properties).values({ ...toRow(parsed.data), sessionId });
 
   revalidatePath("/");
-  redirect("/");
+  revalidatePath("/properties");
+  redirect("/properties");
 }
 
 export async function updateProperty(
@@ -76,6 +77,7 @@ export async function updateProperty(
     .where(and(eq(properties.id, id), eq(properties.sessionId, sessionId)));
 
   revalidatePath("/");
+  revalidatePath("/properties");
   revalidatePath(`/properties/${id}`);
   redirect(`/properties/${id}`);
 }
@@ -86,5 +88,6 @@ export async function deleteProperty(id: string): Promise<void> {
     .delete(properties)
     .where(and(eq(properties.id, id), eq(properties.sessionId, sessionId)));
   revalidatePath("/");
-  redirect("/");
+  revalidatePath("/properties");
+  redirect("/properties");
 }
