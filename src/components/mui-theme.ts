@@ -56,6 +56,70 @@ export const theme = createTheme({
         },
       ],
     },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: {
+          color: "var(--ink-muted)",
+          "&.Mui-focused": {
+            color: "var(--ink)",
+          },
+          "&.Mui-error": {
+            color: "var(--ink-muted)",
+          },
+        },
+      },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          backgroundColor: "var(--surface)",
+          borderRadius: 0,
+          transition: "border-color 0.15s ease",
+          "& .MuiOutlinedInput-notchedOutline": {
+            borderRadius: 0,
+            borderColor: "var(--border-strong)",
+          },
+          "&:hover .MuiOutlinedInput-notchedOutline": {
+            borderColor: "var(--ink-faint)",
+          },
+          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+            borderColor: "var(--ink)",
+            borderWidth: "1.5px",
+          },
+          "&.Mui-error .MuiOutlinedInput-notchedOutline": {
+            borderColor: "#b42318",
+          },
+          "&.Mui-disabled": {
+            backgroundColor: "var(--surface-muted)",
+          },
+        },
+        input: {
+          "&::placeholder": {
+            color: "var(--ink-faint)",
+            opacity: 1,
+          },
+        },
+      },
+    },
+    MuiFormHelperText: {
+      styleOverrides: {
+        root: {
+          marginLeft: 2,
+          fontSize: "0.75rem",
+          color: "var(--ink-faint)",
+          "&.Mui-error": {
+            color: "#b42318",
+          },
+        },
+      },
+    },
+    MuiMenuItem: {
+      styleOverrides: {
+        root: {
+          fontSize: "0.875rem",
+        },
+      },
+    },
     MuiChip: {
       styleOverrides: {
         root: {
