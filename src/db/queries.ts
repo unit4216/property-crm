@@ -90,6 +90,19 @@ export type LeaseWithPropertyAndTenants = Lease & {
   tenants: Tenant[];
 };
 
+export async function getAllLeases(): Promise<LeaseWithPropertyAndTenants[]> {
+  const sessionId = await getSessionId();
+  const rows = await db
+    .select({ lease: leases, property: properties })
+    .from(leases)
+    .innerJoin(properties, eq(leases.propertyId, properties.id))
+    .where(eq(properties.sessionId, sessionId))
+    .orderBy(desc(leases.startDate));
+
+  const withTenants = await attachTenants(rows.map((r) => r.lease));
+  return withTenants.map((lease, i) => ({ ...lease, property: rows[i].property }));
+}
+
 export async function getTenantLeases(
   tenantId: string,
 ): Promise<LeaseWithPropertyAndTenants[]> {

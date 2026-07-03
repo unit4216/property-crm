@@ -50,6 +50,25 @@ function UsersIcon({ className }: { className?: string }) {
   );
 }
 
+function LeaseIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+      <path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z" />
+      <path d="M9 13h6M9 17h6" />
+    </svg>
+  );
+}
+
 // Abstract duotone logo mark — two overlapping discs (an "eclipse") using the
 // brand's ink + lime accent, drawn directly on the canvas (no tile).
 function LogoMark() {
@@ -71,6 +90,7 @@ function LogoMark() {
 const nav = [
   { href: "/", label: "Properties", icon: BuildingIcon, match: /^\/($|properties)/ },
   { href: "/tenants", label: "Tenants", icon: UsersIcon, match: /^\/tenants/ },
+  { href: "/leases", label: "Leases", icon: LeaseIcon, match: /^\/leases/ },
 ];
 
 export function Sidebar() {

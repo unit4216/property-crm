@@ -57,6 +57,7 @@ export async function createLease(
     .values(parsed.data.tenantIds.map((tenantId) => ({ leaseId: lease.id, tenantId })));
 
   revalidatePath(`/properties/${propertyId}`);
+  revalidatePath("/leases");
   redirect(`/properties/${propertyId}`);
 }
 
@@ -70,4 +71,5 @@ export async function endLease(id: string, propertyId: string): Promise<void> {
 
   revalidatePath(`/properties/${propertyId}`);
   revalidatePath("/tenants");
+  revalidatePath("/leases");
 }
