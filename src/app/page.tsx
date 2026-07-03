@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getProperties } from "@/db/queries";
 import { StatusBadge } from "@/components/badge";
-import { PropertyAvatar } from "@/components/property-avatar";
+import { Avatar } from "@/components/avatar";
 import { PROPERTY_TYPES } from "@/lib/validation";
 import { formatCityLine, formatMoney } from "@/lib/format";
 
@@ -123,7 +123,7 @@ export default async function HomePage() {
                   className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-3.5 transition-colors hover:bg-surface-muted sm:grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)_auto_auto]"
                 >
                   <div className="flex min-w-0 items-center gap-3">
-                    <PropertyAvatar name={p.name} />
+                    <Avatar name={p.name} />
                     <div className="min-w-0">
                       <p className="truncate font-medium">{p.name}</p>
                       <p className="truncate text-sm text-ink-muted">

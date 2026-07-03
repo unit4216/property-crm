@@ -1,7 +1,6 @@
-import type { Property } from "@/db/schema";
-
-// A small deterministic-colored tile with the property's initials — stands in
-// for the merchant logos in the reference design.
+// A small deterministic-colored tile with a name's initials — stands in for
+// the merchant/contact logos in the reference design. Used for both
+// properties and tenants.
 const PALETTE = [
   "bg-rose-100 text-rose-700",
   "bg-amber-100 text-amber-700",
@@ -24,7 +23,7 @@ function colorFor(seed: string): string {
   return PALETTE[Math.abs(hash) % PALETTE.length];
 }
 
-export function PropertyAvatar({
+export function Avatar({
   name,
   size = "md",
 }: {

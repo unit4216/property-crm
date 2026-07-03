@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { propertyTypeEnum, propertyStatusEnum } from "@/db/schema";
+import {
+  propertyTypeEnum,
+  propertyStatusEnum,
+  leaseStatusEnum,
+} from "@/db/schema";
 
 // Human-readable labels for the enum values, reused across forms and displays.
 export const PROPERTY_TYPES: Record<
@@ -46,6 +50,11 @@ const optionalText = z.preprocess(
   z.string().trim().optional(),
 );
 
+const optionalEmail = z.preprocess(
+  emptyToUndefined,
+  z.string().trim().email("Invalid email").optional(),
+);
+
 export const propertySchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(200),
   type: z.enum(propertyTypeEnum.enumValues),
@@ -73,3 +82,33 @@ export type FormState = {
   message?: string;
   fieldErrors?: Record<string, string[]>;
 };
+
+export const tenantSchema = z.object({
+  name: z.string().trim().min(1, "Name is required").max(200),
+  email: optionalEmail,
+  phone: optionalText,
+  notes: optionalText,
+});
+
+export type TenantInput = z.infer<typeof tenantSchema>;
+
+export const LEASE_STATUSES: Record<
+  (typeof leaseStatusEnum.enumValues)[number],
+  string
+> = {
+  upcoming: "Upcoming",
+  active: "Active",
+  ended: "Ended",
+};
+
+export const leaseSchema = z.object({
+  tenantIds: z.array(z.string().uuid()).min(1, "Select at least one tenant"),
+  status: z.enum(leaseStatusEnum.enumValues),
+  startDate: z.string().trim().min(1, "Start date is required"),
+  endDate: optionalText,
+  rentAmount: optionalDecimal,
+  depositAmount: optionalDecimal,
+  notes: optionalText,
+});
+
+export type LeaseInput = z.infer<typeof leaseSchema>;

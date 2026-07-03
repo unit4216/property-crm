@@ -23,6 +23,26 @@ function BuildingIcon({ className }: { className?: string }) {
   );
 }
 
+function UsersIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
+      <circle cx="10" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+
 function PlusIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -60,6 +80,7 @@ function LogoMark() {
 
 const nav = [
   { href: "/", label: "Properties", icon: BuildingIcon, match: /^\/($|properties)/ },
+  { href: "/tenants", label: "Tenants", icon: UsersIcon, match: /^\/tenants/ },
 ];
 
 export function Sidebar() {
@@ -97,13 +118,23 @@ export function Sidebar() {
       </nav>
 
       <div className="p-3">
-        <Link
-          href="/properties/new"
-          className="flex items-center justify-center gap-1.5 rounded border border-border-strong bg-surface px-2 py-1.5 text-sm font-medium text-ink transition-colors hover:bg-surface-muted"
-        >
-          <PlusIcon className="size-4" />
-          New property
-        </Link>
+        {pathname.startsWith("/tenants") ? (
+          <Link
+            href="/tenants/new"
+            className="flex items-center justify-center gap-1.5 rounded border border-border-strong bg-surface px-2 py-1.5 text-sm font-medium text-ink transition-colors hover:bg-surface-muted"
+          >
+            <PlusIcon className="size-4" />
+            New tenant
+          </Link>
+        ) : (
+          <Link
+            href="/properties/new"
+            className="flex items-center justify-center gap-1.5 rounded border border-border-strong bg-surface px-2 py-1.5 text-sm font-medium text-ink transition-colors hover:bg-surface-muted"
+          >
+            <PlusIcon className="size-4" />
+            New property
+          </Link>
+        )}
       </div>
     </aside>
   );
