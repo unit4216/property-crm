@@ -1,12 +1,69 @@
 import { createTheme } from "@mui/material/styles";
 
-// Mirrors the design tokens in globals.css so MUI's Table components render
-// with the same hairline borders / hover / typography as the rest of the app.
+// Mirrors the design tokens in globals.css so MUI components render with the
+// same hairline borders / hover / typography as the rest of the app.
 export const theme = createTheme({
   typography: {
     fontFamily: "var(--font-sans), Arial, Helvetica, sans-serif",
   },
+  palette: {
+    primary: {
+      main: "#cbf74f",
+      dark: "#bfee40",
+      contrastText: "#1a1a1a",
+    },
+    error: {
+      main: "#b42318",
+    },
+  },
+  shape: {
+    borderRadius: 4,
+  },
   components: {
+    MuiButton: {
+      defaultProps: {
+        disableElevation: true,
+      },
+      styleOverrides: {
+        root: {
+          textTransform: "none",
+          fontWeight: 500,
+          fontSize: "0.875rem",
+        },
+      },
+      variants: [
+        {
+          props: { variant: "outlined", color: "primary" },
+          style: {
+            borderColor: "var(--border-strong)",
+            color: "var(--ink)",
+            "&:hover": {
+              backgroundColor: "var(--surface-muted)",
+              borderColor: "var(--border-strong)",
+            },
+          },
+        },
+        {
+          props: { variant: "outlined", color: "error" },
+          style: {
+            backgroundColor: "var(--surface)",
+            borderColor: "#f0c8c3",
+            "&:hover": {
+              backgroundColor: "#fdf3f2",
+              borderColor: "#f0c8c3",
+            },
+          },
+        },
+      ],
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          fontWeight: 500,
+          borderRadius: 9999,
+        },
+      },
+    },
     MuiTable: {
       styleOverrides: {
         root: {

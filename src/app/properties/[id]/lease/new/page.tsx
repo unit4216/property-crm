@@ -1,5 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
 import { getProperty, getTenants } from "@/db/queries";
 import { createLease } from "../../../lease-actions";
 import { LeaseForm } from "../../../lease-form";
@@ -34,17 +38,18 @@ export default async function NewLeasePage({
       </h1>
 
       {tenants.length === 0 ? (
-        <div className="rounded-md border border-dashed border-border-strong bg-surface p-12 text-center">
-          <p className="text-ink-muted">
+        <Paper variant="outlined" sx={{ p: 6, textAlign: "center", borderStyle: "dashed" }}>
+          <Typography sx={{ color: "var(--ink-muted)" }}>
             You need at least one tenant before starting a lease.
-          </p>
-          <Link
-            href="/tenants/new"
-            className="btn btn-primary mt-4 inline-flex"
-          >
-            Add a tenant
-          </Link>
-        </div>
+          </Typography>
+          <Box sx={{ mt: 2 }}>
+            <Link href="/tenants/new">
+              <Button variant="contained" component="span">
+                Add a tenant
+              </Button>
+            </Link>
+          </Box>
+        </Paper>
       ) : (
         <LeaseForm
           action={action}

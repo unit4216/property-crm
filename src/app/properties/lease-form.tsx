@@ -2,6 +2,17 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
+import Alert from "@mui/material/Alert";
+import Button from "@mui/material/Button";
+import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import FormGroup from "@mui/material/FormGroup";
+import FormHelperText from "@mui/material/FormHelperText";
+import MenuItem from "@mui/material/MenuItem";
+import Paper from "@mui/material/Paper";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
 import type { Tenant } from "@/db/schema";
 import { LEASE_STATUSES, type FormState } from "@/lib/validation";
 
@@ -12,12 +23,10 @@ type Action = (
 
 const initialState: FormState = { ok: false };
 
-const labelClass = "mb-1 block text-sm font-medium text-ink";
-
-function FieldError({ errors }: { errors?: string[] }) {
-  if (!errors?.length) return null;
-  return <p className="mt-1 text-xs text-red-600">{errors[0]}</p>;
-}
+const sectionTitleSx = {
+  color: "var(--ink-muted)",
+  lineHeight: 1,
+} as const;
 
 export function LeaseForm({
   action,
@@ -32,133 +41,136 @@ export function LeaseForm({
   const errors = state.fieldErrors ?? {};
 
   return (
-    <form action={formAction} className="space-y-5">
-      {state.message && !state.ok && (
-        <div className="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {state.message}
-        </div>
-      )}
+    <form action={formAction}>
+      <Stack spacing={2.5}>
+        {state.message && !state.ok && (
+          <Alert severity="error">{state.message}</Alert>
+        )}
 
-      <section className="space-y-4 rounded-md border border-border bg-surface p-6">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
-          Tenants
-        </h2>
-        <div className="space-y-2">
-          {tenants.map((t) => (
-            <label
-              key={t.id}
-              className="flex items-center gap-2.5 text-sm text-ink"
+        <Paper component="section" variant="outlined" sx={{ p: 3 }}>
+          <Stack spacing={1.5}>
+            <Typography variant="overline" sx={sectionTitleSx}>
+              Tenants
+            </Typography>
+            <FormGroup>
+              {tenants.map((t) => (
+                <FormControlLabel
+                  key={t.id}
+                  control={<Checkbox name="tenantIds" value={t.id} />}
+                  label={
+                    <>
+                      {t.name}
+                      {t.email && (
+                        <Typography
+                          component="span"
+                          variant="body2"
+                          sx={{ color: "var(--ink-faint)", ml: 0.5 }}
+                        >
+                          · {t.email}
+                        </Typography>
+                      )}
+                    </>
+                  }
+                />
+              ))}
+            </FormGroup>
+            {errors.tenantIds?.[0] && (
+              <FormHelperText error>{errors.tenantIds[0]}</FormHelperText>
+            )}
+          </Stack>
+        </Paper>
+
+        <Paper component="section" variant="outlined" sx={{ p: 3 }}>
+          <Stack spacing={2.5}>
+            <Typography variant="overline" sx={sectionTitleSx}>
+              Terms
+            </Typography>
+
+            <TextField
+              id="status"
+              name="status"
+              label="Status"
+              select
+              defaultValue="active"
+              error={!!errors.status}
+              helperText={errors.status?.[0]}
+              fullWidth
             >
-              <input
-                type="checkbox"
-                name="tenantIds"
-                value={t.id}
-                className="size-4 rounded border-border-strong"
+              {Object.entries(LEASE_STATUSES).map(([value, label]) => (
+                <MenuItem key={value} value={value}>
+                  {label}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+              <TextField
+                id="startDate"
+                name="startDate"
+                label="Start date"
+                type="date"
+                error={!!errors.startDate}
+                helperText={errors.startDate?.[0]}
+                slotProps={{ inputLabel: { shrink: true } }}
+                fullWidth
               />
-              {t.name}
-              {t.email && (
-                <span className="text-ink-faint">· {t.email}</span>
-              )}
-            </label>
-          ))}
-        </div>
-        <FieldError errors={errors.tenantIds} />
-      </section>
+              <TextField
+                id="endDate"
+                name="endDate"
+                label="End date (optional)"
+                type="date"
+                error={!!errors.endDate}
+                helperText={errors.endDate?.[0]}
+                slotProps={{ inputLabel: { shrink: true } }}
+                fullWidth
+              />
+            </Stack>
 
-      <section className="space-y-4 rounded-md border border-border bg-surface p-6">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
-          Terms
-        </h2>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+              <TextField
+                id="rentAmount"
+                name="rentAmount"
+                label="Rent / mo"
+                type="number"
+                slotProps={{ htmlInput: { min: 0, step: 1 } }}
+                error={!!errors.rentAmount}
+                helperText={errors.rentAmount?.[0]}
+                fullWidth
+              />
+              <TextField
+                id="depositAmount"
+                name="depositAmount"
+                label="Deposit"
+                type="number"
+                slotProps={{ htmlInput: { min: 0, step: 1 } }}
+                error={!!errors.depositAmount}
+                helperText={errors.depositAmount?.[0]}
+                fullWidth
+              />
+            </Stack>
 
-        <div>
-          <label htmlFor="status" className={labelClass}>
-            Status
-          </label>
-          <select
-            id="status"
-            name="status"
-            defaultValue="active"
-            className="field"
-          >
-            {Object.entries(LEASE_STATUSES).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-          <FieldError errors={errors.status} />
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="startDate" className={labelClass}>
-              Start date
-            </label>
-            <input
-              id="startDate"
-              name="startDate"
-              type="date"
-              className="field"
+            <TextField
+              id="notes"
+              name="notes"
+              label="Notes (optional)"
+              multiline
+              rows={3}
+              error={!!errors.notes}
+              helperText={errors.notes?.[0]}
+              fullWidth
             />
-            <FieldError errors={errors.startDate} />
-          </div>
-          <div>
-            <label htmlFor="endDate" className={labelClass}>
-              End date <span className="text-ink-faint">(optional)</span>
-            </label>
-            <input id="endDate" name="endDate" type="date" className="field" />
-            <FieldError errors={errors.endDate} />
-          </div>
-        </div>
+          </Stack>
+        </Paper>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="rentAmount" className={labelClass}>
-              Rent / mo
-            </label>
-            <input
-              id="rentAmount"
-              name="rentAmount"
-              type="number"
-              min="0"
-              step="1"
-              className="field"
-            />
-            <FieldError errors={errors.rentAmount} />
-          </div>
-          <div>
-            <label htmlFor="depositAmount" className={labelClass}>
-              Deposit
-            </label>
-            <input
-              id="depositAmount"
-              name="depositAmount"
-              type="number"
-              min="0"
-              step="1"
-              className="field"
-            />
-            <FieldError errors={errors.depositAmount} />
-          </div>
-        </div>
-
-        <div>
-          <label htmlFor="notes" className={labelClass}>
-            Notes <span className="text-ink-faint">(optional)</span>
-          </label>
-          <textarea id="notes" name="notes" rows={3} className="field" />
-          <FieldError errors={errors.notes} />
-        </div>
-      </section>
-
-      <div className="flex items-center gap-3">
-        <button type="submit" disabled={pending} className="btn btn-primary">
-          {pending ? "Saving…" : "Start lease"}
-        </button>
-        <Link href={cancelHref} className="btn btn-secondary">
-          Cancel
-        </Link>
-      </div>
+        <Stack direction="row" spacing={1.5}>
+          <Button type="submit" variant="contained" loading={pending}>
+            {pending ? "Saving…" : "Start lease"}
+          </Button>
+          <Button variant="outlined" component={Link} href={cancelHref}>
+            Cancel
+          </Button>
+        </Stack>
+      </Stack>
     </form>
   );
 }

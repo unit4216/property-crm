@@ -2,6 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Drawer from "@mui/material/Drawer";
+import List from "@mui/material/List";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import Typography from "@mui/material/Typography";
 
 function BuildingIcon({ className }: { className?: string }) {
   return (
@@ -87,55 +95,98 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-canvas">
-      <div className="px-5 py-5">
-        <Link href="/" className="flex items-center" aria-label="Property CRM">
+    <Drawer
+      variant="permanent"
+      sx={{
+        width: 240,
+        flexShrink: 0,
+        "& .MuiDrawer-paper": {
+          position: "relative",
+          width: 240,
+          boxSizing: "border-box",
+          border: "none",
+          borderRight: "1px solid var(--border)",
+          backgroundColor: "var(--canvas)",
+        },
+      }}
+    >
+      <Box sx={{ px: 2.5, py: 2.5 }}>
+        <Link href="/" aria-label="Property CRM" style={{ display: "flex" }}>
           <LogoMark />
         </Link>
-      </div>
+      </Box>
 
-      <nav className="flex-1 px-3">
-        <p className="px-2 pb-1 pt-2 text-xs font-medium uppercase tracking-wide text-ink-faint">
+      <Box sx={{ flex: 1, px: 1.5 }}>
+        <Typography
+          variant="caption"
+          sx={{
+            display: "block",
+            px: 1,
+            pb: 0.5,
+            pt: 1,
+            fontWeight: 500,
+            textTransform: "uppercase",
+            letterSpacing: "0.03em",
+            color: "var(--ink-faint)",
+          }}
+        >
           Portfolio
-        </p>
-        {nav.map(({ href, label, icon: Icon, match }) => {
-          const active = match.test(pathname);
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={`mt-0.5 flex items-center gap-2.5 rounded px-2 py-1.5 text-sm transition-colors ${
-                active
-                  ? "bg-white font-medium text-ink shadow-[0_1px_2px_rgba(0,0,0,0.04)] ring-1 ring-border"
-                  : "text-ink-muted hover:bg-white/60 hover:text-ink"
-              }`}
-            >
-              <Icon className="size-4" />
-              {label}
-            </Link>
-          );
-        })}
-      </nav>
+        </Typography>
+        <List disablePadding sx={{ display: "flex", flexDirection: "column", gap: 0.25 }}>
+          {nav.map(({ href, label, icon: Icon, match }) => {
+            const active = match.test(pathname);
+            return (
+              <ListItemButton
+                key={href}
+                component={Link}
+                href={href}
+                selected={active}
+                sx={{
+                  borderRadius: 1,
+                  py: 0.75,
+                  px: 1,
+                  color: active ? "var(--ink)" : "var(--ink-muted)",
+                  "&.Mui-selected": {
+                    backgroundColor: "#fff",
+                    boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
+                    border: "1px solid var(--border)",
+                  },
+                  "&.Mui-selected:hover": {
+                    backgroundColor: "#fff",
+                  },
+                  "&:hover": {
+                    backgroundColor: "rgba(255,255,255,0.6)",
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 0, mr: 1.25, color: "inherit" }}>
+                  <Icon className="size-4" />
+                </ListItemIcon>
+                <ListItemText
+                  primary={label}
+                  slotProps={{
+                    primary: {
+                      sx: { fontSize: "0.875rem", fontWeight: active ? 500 : 400 },
+                    },
+                  }}
+                />
+              </ListItemButton>
+            );
+          })}
+        </List>
+      </Box>
 
-      <div className="p-3">
-        {pathname.startsWith("/tenants") ? (
-          <Link
-            href="/tenants/new"
-            className="flex items-center justify-center gap-1.5 rounded border border-border-strong bg-surface px-2 py-1.5 text-sm font-medium text-ink transition-colors hover:bg-surface-muted"
-          >
-            <PlusIcon className="size-4" />
-            New tenant
-          </Link>
-        ) : (
-          <Link
-            href="/properties/new"
-            className="flex items-center justify-center gap-1.5 rounded border border-border-strong bg-surface px-2 py-1.5 text-sm font-medium text-ink transition-colors hover:bg-surface-muted"
-          >
-            <PlusIcon className="size-4" />
-            New property
-          </Link>
-        )}
-      </div>
-    </aside>
+      <Box sx={{ p: 1.5 }}>
+        <Button
+          variant="outlined"
+          fullWidth
+          component={Link}
+          href={pathname.startsWith("/tenants") ? "/tenants/new" : "/properties/new"}
+          startIcon={<PlusIcon className="size-4" />}
+        >
+          {pathname.startsWith("/tenants") ? "New tenant" : "New property"}
+        </Button>
+      </Box>
+    </Drawer>
   );
 }

@@ -1,9 +1,14 @@
 import Link from "next/link";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Paper from "@mui/material/Paper";
+import Stack from "@mui/material/Stack";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
+import Typography from "@mui/material/Typography";
 import { getTenants } from "@/db/queries";
 import { Avatar } from "@/components/avatar";
 
@@ -42,23 +47,28 @@ export default async function TenantsPage() {
             file.
           </p>
         </div>
-        <Link href="/tenants/new" className="btn btn-primary">
-          New tenant
+        <Link href="/tenants/new">
+          <Button variant="contained" component="span">
+            New tenant
+          </Button>
         </Link>
       </div>
 
       {tenants.length === 0 ? (
-        <div className="mt-6 rounded-md border border-dashed border-border-strong bg-surface p-12 text-center">
-          <p className="text-ink-muted">No tenants yet.</p>
-          <Link
-            href="/tenants/new"
-            className="btn btn-primary mt-4 inline-flex"
-          >
-            Add your first tenant
-          </Link>
-        </div>
+        <Paper variant="outlined" sx={{ mt: 3, p: 6, textAlign: "center", borderStyle: "dashed" }}>
+          <Typography sx={{ color: "var(--ink-muted)" }}>
+            No tenants yet.
+          </Typography>
+          <Box sx={{ mt: 2 }}>
+            <Link href="/tenants/new">
+              <Button variant="contained" component="span">
+                Add your first tenant
+              </Button>
+            </Link>
+          </Box>
+        </Paper>
       ) : (
-        <div className="mt-6 bg-surface">
+        <Stack sx={{ mt: 3, bgcolor: "var(--surface)" }}>
           <Table>
             <TableHead>
               <TableRow>
@@ -100,7 +110,7 @@ export default async function TenantsPage() {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </Stack>
       )}
     </div>
   );

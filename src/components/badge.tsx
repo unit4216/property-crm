@@ -1,36 +1,47 @@
+import Chip from "@mui/material/Chip";
 import type { Property, Lease } from "@/db/schema";
 import { PROPERTY_STATUSES, LEASE_STATUSES } from "@/lib/validation";
 
-const STATUS_STYLES: Record<Property["status"], string> = {
-  active: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-  occupied: "bg-blue-50 text-blue-700 ring-blue-600/20",
-  vacant: "bg-amber-50 text-amber-700 ring-amber-600/20",
-  under_maintenance: "bg-orange-50 text-orange-700 ring-orange-600/20",
-  listed: "bg-violet-50 text-violet-700 ring-violet-600/20",
+const STATUS_STYLES: Record<Property["status"], { bg: string; color: string; border: string }> = {
+  active: { bg: "#ecfdf5", color: "#047857", border: "rgba(5,150,105,0.2)" },
+  occupied: { bg: "#eff6ff", color: "#1d4ed8", border: "rgba(37,99,235,0.2)" },
+  vacant: { bg: "#fffbeb", color: "#b45309", border: "rgba(217,119,6,0.2)" },
+  under_maintenance: { bg: "#fff7ed", color: "#c2410c", border: "rgba(234,88,12,0.2)" },
+  listed: { bg: "#f5f3ff", color: "#6d28d9", border: "rgba(124,58,237,0.2)" },
 };
 
 export function StatusBadge({ status }: { status: Property["status"] }) {
+  const { bg, color, border } = STATUS_STYLES[status];
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${STATUS_STYLES[status]}`}
-    >
-      {PROPERTY_STATUSES[status]}
-    </span>
+    <Chip
+      size="small"
+      label={PROPERTY_STATUSES[status]}
+      sx={{
+        bgcolor: bg,
+        color,
+        border: `1px solid ${border}`,
+      }}
+    />
   );
 }
 
-const LEASE_STATUS_STYLES: Record<Lease["status"], string> = {
-  active: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-  upcoming: "bg-sky-50 text-sky-700 ring-sky-600/20",
-  ended: "bg-neutral-100 text-neutral-600 ring-neutral-500/20",
+const LEASE_STATUS_STYLES: Record<Lease["status"], { bg: string; color: string; border: string }> = {
+  active: { bg: "#ecfdf5", color: "#047857", border: "rgba(5,150,105,0.2)" },
+  upcoming: { bg: "#f0f9ff", color: "#0369a1", border: "rgba(2,132,199,0.2)" },
+  ended: { bg: "#f5f5f5", color: "#525252", border: "rgba(115,115,115,0.2)" },
 };
 
 export function LeaseStatusBadge({ status }: { status: Lease["status"] }) {
+  const { bg, color, border } = LEASE_STATUS_STYLES[status];
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${LEASE_STATUS_STYLES[status]}`}
-    >
-      {LEASE_STATUSES[status]}
-    </span>
+    <Chip
+      size="small"
+      label={LEASE_STATUSES[status]}
+      sx={{
+        bgcolor: bg,
+        color,
+        border: `1px solid ${border}`,
+      }}
+    />
   );
 }

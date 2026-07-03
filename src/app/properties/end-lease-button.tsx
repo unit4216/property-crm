@@ -1,6 +1,8 @@
 "use client";
 
 import { useTransition } from "react";
+import Button from "@mui/material/Button";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { endLease } from "./lease-actions";
 
 export function EndLeaseButton({
@@ -12,19 +14,19 @@ export function EndLeaseButton({
 }) {
   const [pending, startTransition] = useTransition();
 
-  function onClick() {
-    if (!confirm("End this lease today?")) return;
-    startTransition(() => endLease(id, propertyId));
-  }
-
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={pending}
-      className="btn btn-secondary"
-    >
-      {pending ? "Ending…" : "End lease"}
-    </button>
+    <ConfirmDialog
+      title="End lease"
+      description="End this lease today?"
+      confirmLabel="End lease"
+      pendingLabel="Ending…"
+      pending={pending}
+      onConfirm={() => startTransition(() => endLease(id, propertyId))}
+      trigger={(open) => (
+        <Button variant="outlined" onClick={open} loading={pending}>
+          {pending ? "Ending…" : "End lease"}
+        </Button>
+      )}
+    />
   );
 }

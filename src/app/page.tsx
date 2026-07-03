@@ -1,9 +1,14 @@
 import Link from "next/link";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Paper from "@mui/material/Paper";
+import Stack from "@mui/material/Stack";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
+import Typography from "@mui/material/Typography";
 import { getProperties } from "@/db/queries";
 import { StatusBadge } from "@/components/badge";
 import { Avatar } from "@/components/avatar";
@@ -24,14 +29,20 @@ function StatTile({
 }) {
   return (
     <div>
-      <p className="text-sm text-ink-muted">{label}</p>
-      <p
-        className={`mt-1 text-2xl font-semibold tracking-tight ${
-          accent ? "text-positive" : "text-ink"
-        }`}
+      <Typography variant="body2" sx={{ color: "var(--ink-muted)" }}>
+        {label}
+      </Typography>
+      <Typography
+        variant="h5"
+        sx={{
+          mt: 0.5,
+          fontWeight: 600,
+          letterSpacing: "-0.01em",
+          color: accent ? "var(--positive)" : "var(--ink)",
+        }}
       >
         {value}
-      </p>
+      </Typography>
     </div>
   );
 }
@@ -79,8 +90,10 @@ export default async function HomePage() {
             management.
           </p>
         </div>
-        <Link href="/properties/new" className="btn btn-primary">
-          New property
+        <Link href="/properties/new">
+          <Button variant="contained" component="span">
+            New property
+          </Button>
         </Link>
       </div>
 
@@ -100,17 +113,20 @@ export default async function HomePage() {
 
       {/* Table */}
       {properties.length === 0 ? (
-        <div className="mt-6 rounded-md border border-dashed border-border-strong bg-surface p-12 text-center">
-          <p className="text-ink-muted">No properties yet.</p>
-          <Link
-            href="/properties/new"
-            className="btn btn-primary mt-4 inline-flex"
-          >
-            Add your first property
-          </Link>
-        </div>
+        <Paper variant="outlined" sx={{ mt: 3, p: 6, textAlign: "center", borderStyle: "dashed" }}>
+          <Typography sx={{ color: "var(--ink-muted)" }}>
+            No properties yet.
+          </Typography>
+          <Box sx={{ mt: 2 }}>
+            <Link href="/properties/new">
+              <Button variant="contained" component="span">
+                Add your first property
+              </Button>
+            </Link>
+          </Box>
+        </Paper>
       ) : (
-        <div className="mt-6 bg-surface">
+        <Stack sx={{ mt: 3, bgcolor: "var(--surface)" }}>
           <Table>
             <TableHead>
               <TableRow>
@@ -175,7 +191,7 @@ export default async function HomePage() {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </Stack>
       )}
     </div>
   );

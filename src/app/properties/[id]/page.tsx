@@ -1,9 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import Button from "@mui/material/Button";
+import Paper from "@mui/material/Paper";
+import Stack from "@mui/material/Stack";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
+import Typography from "@mui/material/Typography";
 import { getProperty, getPropertyLeases } from "@/db/queries";
 import { StatusBadge, LeaseStatusBadge } from "@/components/badge";
 import { Avatar } from "@/components/avatar";
@@ -30,16 +34,29 @@ function Stat({
 }) {
   return (
     <div>
-      <dt className="text-xs font-medium uppercase tracking-wide text-ink-muted">
+      <Typography
+        component="dt"
+        variant="caption"
+        sx={{
+          fontWeight: 500,
+          textTransform: "uppercase",
+          letterSpacing: "0.03em",
+          color: "var(--ink-muted)",
+        }}
+      >
         {label}
-      </dt>
-      <dd
-        className={`mt-1 text-lg font-semibold ${
-          accent ? "text-positive" : "text-ink"
-        }`}
+      </Typography>
+      <Typography
+        component="dd"
+        variant="body1"
+        sx={{
+          mt: 0.5,
+          fontWeight: 600,
+          color: accent ? "var(--positive)" : "var(--ink)",
+        }}
       >
         {value}
-      </dd>
+      </Typography>
     </div>
   );
 }
@@ -86,11 +103,10 @@ export default async function PropertyDetailPage({
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Link
-            href={`/properties/${property.id}/edit`}
-            className="btn btn-secondary"
-          >
-            Edit
+          <Link href={`/properties/${property.id}/edit`}>
+            <Button variant="outlined" component="span">
+              Edit
+            </Button>
           </Link>
           <DeleteButton id={property.id} name={property.name} />
         </div>
@@ -110,7 +126,7 @@ export default async function PropertyDetailPage({
         />
       </dl>
 
-      <section className="mt-6 rounded-md border border-border bg-surface p-6">
+      <Paper component="section" variant="outlined" sx={{ mt: 3, p: 3 }}>
         <div className="flex items-center justify-between">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
             Lease
@@ -152,22 +168,21 @@ export default async function PropertyDetailPage({
         ) : (
           <div className="mt-3">
             <p className="text-sm text-ink-muted">No active lease.</p>
-            <Link
-              href={`/properties/${property.id}/lease/new`}
-              className="btn btn-primary mt-3 inline-flex"
-            >
-              Start lease
+            <Link href={`/properties/${property.id}/lease/new`}>
+              <Button variant="contained" component="span" sx={{ mt: 1.5 }}>
+                Start lease
+              </Button>
             </Link>
           </div>
         )}
-      </section>
+      </Paper>
 
       {pastLeases.length > 0 && (
         <section className="mt-6">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
             Lease history
           </h2>
-          <div className="mt-2 bg-surface">
+          <Stack sx={{ mt: 1, bgcolor: "var(--surface)" }}>
             <Table>
               <TableBody>
                 {pastLeases.map((lease) => (
@@ -197,17 +212,17 @@ export default async function PropertyDetailPage({
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </Stack>
         </section>
       )}
 
       {property.notes && (
-        <section className="mt-6 rounded-md border border-border bg-surface p-6">
+        <Paper component="section" variant="outlined" sx={{ mt: 3, p: 3 }}>
           <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
             Notes
           </h2>
           <p className="mt-2 whitespace-pre-wrap text-sm">{property.notes}</p>
-        </section>
+        </Paper>
       )}
 
       <p className="mt-6 text-xs text-ink-faint">

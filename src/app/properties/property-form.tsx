@@ -2,6 +2,13 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
+import Alert from "@mui/material/Alert";
+import Button from "@mui/material/Button";
+import MenuItem from "@mui/material/MenuItem";
+import Paper from "@mui/material/Paper";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
 import type { Property } from "@/db/schema";
 import {
   PROPERTY_STATUSES,
@@ -16,13 +23,6 @@ type Action = (
 
 const initialState: FormState = { ok: false };
 
-const labelClass = "mb-1 block text-sm font-medium text-ink";
-
-function FieldError({ errors }: { errors?: string[] }) {
-  if (!errors?.length) return null;
-  return <p className="mt-1 text-xs text-red-600">{errors[0]}</p>;
-}
-
 function Section({
   title,
   hint,
@@ -33,13 +33,26 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="space-y-4 rounded-md border border-border bg-surface p-6">
-      <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
-        {title}
-        {hint && <span className="ml-2 font-normal text-ink-faint">{hint}</span>}
-      </h2>
-      {children}
-    </section>
+    <Paper component="section" variant="outlined" sx={{ p: 3 }}>
+      <Stack spacing={2.5}>
+        <Typography
+          variant="overline"
+          sx={{ color: "var(--ink-muted)", lineHeight: 1 }}
+        >
+          {title}
+          {hint && (
+            <Typography
+              component="span"
+              variant="caption"
+              sx={{ ml: 1, color: "var(--ink-faint)", textTransform: "none" }}
+            >
+              {hint}
+            </Typography>
+          )}
+        </Typography>
+        {children}
+      </Stack>
+    </Paper>
   );
 }
 
@@ -58,220 +71,185 @@ export function PropertyForm({
   const errors = state.fieldErrors ?? {};
 
   return (
-    <form action={formAction} className="space-y-5">
-      {state.message && !state.ok && (
-        <div className="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {state.message}
-        </div>
-      )}
+    <form action={formAction}>
+      <Stack spacing={2.5}>
+        {state.message && !state.ok && (
+          <Alert severity="error">{state.message}</Alert>
+        )}
 
-      <Section title="Details">
-        <div>
-          <label htmlFor="name" className={labelClass}>
-            Name
-          </label>
-          <input
+        <Section title="Details">
+          <TextField
             id="name"
             name="name"
+            label="Name"
             defaultValue={property?.name ?? ""}
             placeholder="e.g. Maple Street Duplex"
-            className="field"
+            error={!!errors.name}
+            helperText={errors.name?.[0]}
+            fullWidth
           />
-          <FieldError errors={errors.name} />
-        </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="type" className={labelClass}>
-              Type
-            </label>
-            <select
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            <TextField
               id="type"
               name="type"
+              label="Type"
+              select
               defaultValue={property?.type ?? "single_family"}
-              className="field"
+              error={!!errors.type}
+              helperText={errors.type?.[0]}
+              fullWidth
             >
               {Object.entries(PROPERTY_TYPES).map(([value, label]) => (
-                <option key={value} value={value}>
+                <MenuItem key={value} value={value}>
                   {label}
-                </option>
+                </MenuItem>
               ))}
-            </select>
-            <FieldError errors={errors.type} />
-          </div>
-          <div>
-            <label htmlFor="status" className={labelClass}>
-              Status
-            </label>
-            <select
+            </TextField>
+            <TextField
               id="status"
               name="status"
+              label="Status"
+              select
               defaultValue={property?.status ?? "active"}
-              className="field"
+              error={!!errors.status}
+              helperText={errors.status?.[0]}
+              fullWidth
             >
               {Object.entries(PROPERTY_STATUSES).map(([value, label]) => (
-                <option key={value} value={value}>
+                <MenuItem key={value} value={value}>
                   {label}
-                </option>
+                </MenuItem>
               ))}
-            </select>
-            <FieldError errors={errors.status} />
-          </div>
-        </div>
-      </Section>
+            </TextField>
+          </Stack>
+        </Section>
 
-      <Section title="Address">
-        <div>
-          <label htmlFor="addressLine1" className={labelClass}>
-            Street address
-          </label>
-          <input
+        <Section title="Address">
+          <TextField
             id="addressLine1"
             name="addressLine1"
+            label="Street address"
             defaultValue={property?.addressLine1 ?? ""}
             placeholder="123 Maple St"
-            className="field"
+            error={!!errors.addressLine1}
+            helperText={errors.addressLine1?.[0]}
+            fullWidth
           />
-          <FieldError errors={errors.addressLine1} />
-        </div>
-        <div>
-          <label htmlFor="addressLine2" className={labelClass}>
-            Unit / Apt <span className="text-ink-faint">(optional)</span>
-          </label>
-          <input
+          <TextField
             id="addressLine2"
             name="addressLine2"
+            label="Unit / Apt (optional)"
             defaultValue={property?.addressLine2 ?? ""}
             placeholder="Unit 2"
-            className="field"
+            error={!!errors.addressLine2}
+            helperText={errors.addressLine2?.[0]}
+            fullWidth
           />
-          <FieldError errors={errors.addressLine2} />
-        </div>
-        <div className="grid gap-4 sm:grid-cols-6">
-          <div className="sm:col-span-3">
-            <label htmlFor="city" className={labelClass}>
-              City
-            </label>
-            <input
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            <TextField
               id="city"
               name="city"
+              label="City"
               defaultValue={property?.city ?? ""}
-              className="field"
+              error={!!errors.city}
+              helperText={errors.city?.[0]}
+              fullWidth
+              sx={{ flex: 3 }}
             />
-            <FieldError errors={errors.city} />
-          </div>
-          <div className="sm:col-span-1">
-            <label htmlFor="state" className={labelClass}>
-              State
-            </label>
-            <input
+            <TextField
               id="state"
               name="state"
+              label="State"
               defaultValue={property?.state ?? ""}
               placeholder="CA"
-              className="field"
+              error={!!errors.state}
+              helperText={errors.state?.[0]}
+              fullWidth
+              sx={{ flex: 1 }}
             />
-            <FieldError errors={errors.state} />
-          </div>
-          <div className="sm:col-span-2">
-            <label htmlFor="zip" className={labelClass}>
-              ZIP
-            </label>
-            <input
+            <TextField
               id="zip"
               name="zip"
+              label="ZIP"
               defaultValue={property?.zip ?? ""}
-              className="field"
+              error={!!errors.zip}
+              helperText={errors.zip?.[0]}
+              fullWidth
+              sx={{ flex: 2 }}
             />
-            <FieldError errors={errors.zip} />
-          </div>
-        </div>
-      </Section>
+          </Stack>
+        </Section>
 
-      <Section title="Specs & rent" hint="(optional)">
-        <div className="grid gap-4 sm:grid-cols-4">
-          <div>
-            <label htmlFor="bedrooms" className={labelClass}>
-              Beds
-            </label>
-            <input
+        <Section title="Specs & rent" hint="(optional)">
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            <TextField
               id="bedrooms"
               name="bedrooms"
+              label="Beds"
               type="number"
-              min="0"
+              slotProps={{ htmlInput: { min: 0 } }}
               defaultValue={property?.bedrooms ?? ""}
-              className="field"
+              error={!!errors.bedrooms}
+              helperText={errors.bedrooms?.[0]}
+              fullWidth
             />
-            <FieldError errors={errors.bedrooms} />
-          </div>
-          <div>
-            <label htmlFor="bathrooms" className={labelClass}>
-              Baths
-            </label>
-            <input
+            <TextField
               id="bathrooms"
               name="bathrooms"
+              label="Baths"
               type="number"
-              min="0"
-              step="0.5"
+              slotProps={{ htmlInput: { min: 0, step: 0.5 } }}
               defaultValue={property?.bathrooms ?? ""}
-              className="field"
+              error={!!errors.bathrooms}
+              helperText={errors.bathrooms?.[0]}
+              fullWidth
             />
-            <FieldError errors={errors.bathrooms} />
-          </div>
-          <div>
-            <label htmlFor="squareFeet" className={labelClass}>
-              Sq ft
-            </label>
-            <input
+            <TextField
               id="squareFeet"
               name="squareFeet"
+              label="Sq ft"
               type="number"
-              min="0"
+              slotProps={{ htmlInput: { min: 0 } }}
               defaultValue={property?.squareFeet ?? ""}
-              className="field"
+              error={!!errors.squareFeet}
+              helperText={errors.squareFeet?.[0]}
+              fullWidth
             />
-            <FieldError errors={errors.squareFeet} />
-          </div>
-          <div>
-            <label htmlFor="rentAmount" className={labelClass}>
-              Rent / mo
-            </label>
-            <input
+            <TextField
               id="rentAmount"
               name="rentAmount"
+              label="Rent / mo"
               type="number"
-              min="0"
-              step="1"
+              slotProps={{ htmlInput: { min: 0, step: 1 } }}
               defaultValue={property?.rentAmount ?? ""}
-              className="field"
+              error={!!errors.rentAmount}
+              helperText={errors.rentAmount?.[0]}
+              fullWidth
             />
-            <FieldError errors={errors.rentAmount} />
-          </div>
-        </div>
-        <div>
-          <label htmlFor="notes" className={labelClass}>
-            Notes
-          </label>
-          <textarea
+          </Stack>
+          <TextField
             id="notes"
             name="notes"
+            label="Notes"
+            multiline
             rows={3}
             defaultValue={property?.notes ?? ""}
-            className="field"
+            error={!!errors.notes}
+            helperText={errors.notes?.[0]}
+            fullWidth
           />
-          <FieldError errors={errors.notes} />
-        </div>
-      </Section>
+        </Section>
 
-      <div className="flex items-center gap-3">
-        <button type="submit" disabled={pending} className="btn btn-primary">
-          {pending ? "Saving…" : submitLabel}
-        </button>
-        <Link href={cancelHref} className="btn btn-secondary">
-          Cancel
-        </Link>
-      </div>
+        <Stack direction="row" spacing={1.5}>
+          <Button type="submit" variant="contained" loading={pending}>
+            {pending ? "Saving…" : submitLabel}
+          </Button>
+          <Button variant="outlined" component={Link} href={cancelHref}>
+            Cancel
+          </Button>
+        </Stack>
+      </Stack>
     </form>
   );
 }

@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import Button from "@mui/material/Button";
+import Paper from "@mui/material/Paper";
+import Stack from "@mui/material/Stack";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -45,23 +48,22 @@ export default async function TenantDetailPage({
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Link
-            href={`/tenants/${tenant.id}/edit`}
-            className="btn btn-secondary"
-          >
-            Edit
+          <Link href={`/tenants/${tenant.id}/edit`}>
+            <Button variant="outlined" component="span">
+              Edit
+            </Button>
           </Link>
           <DeleteTenantButton id={tenant.id} name={tenant.name} />
         </div>
       </div>
 
       {tenant.notes && (
-        <section className="mt-6 rounded-md border border-border bg-surface p-6">
+        <Paper component="section" variant="outlined" sx={{ mt: 3, p: 3 }}>
           <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
             Notes
           </h2>
           <p className="mt-2 whitespace-pre-wrap text-sm">{tenant.notes}</p>
-        </section>
+        </Paper>
       )}
 
       <section className="mt-6">
@@ -72,7 +74,7 @@ export default async function TenantDetailPage({
         {leases.length === 0 ? (
           <p className="mt-2 text-sm text-ink-muted">No leases yet.</p>
         ) : (
-          <div className="mt-2 bg-surface">
+          <Stack sx={{ mt: 1, bgcolor: "var(--surface)" }}>
             <Table>
               <TableBody>
                 {leases.map((lease) => (
@@ -118,7 +120,7 @@ export default async function TenantDetailPage({
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </Stack>
         )}
       </section>
     </div>
