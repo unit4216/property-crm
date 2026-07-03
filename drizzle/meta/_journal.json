@@ -15,6 +15,13 @@
       "when": 1783086922257,
       "tag": "0001_parallel_absorbing_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783107859431,
+      "tag": "0002_boring_lenny_balinger",
+      "breakpoints": true
     }
   ]
 }

@@ -2,12 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
+import { getSessionId } from "@/lib/session";
 import { tenants, type NewTenant } from "@/db/schema";
 import { tenantSchema, type FormState } from "@/lib/validation";
 
-function toRow(input: ReturnType<typeof tenantSchema.parse>): NewTenant {
+function toRow(
+  input: ReturnType<typeof tenantSchema.parse>,
+): Omit<NewTenant, "sessionId"> {
   return {
     name: input.name,
     email: input.email ?? null,
@@ -34,7 +37,8 @@ export async function createTenant(
     };
   }
 
-  await db.insert(tenants).values(toRow(parsed.data));
+  const sessionId = await getSessionId();
+  await db.insert(tenants).values({ ...toRow(parsed.data), sessionId });
 
   revalidatePath("/tenants");
   redirect("/tenants");
@@ -54,10 +58,11 @@ export async function updateTenant(
     };
   }
 
+  const sessionId = await getSessionId();
   await db
     .update(tenants)
     .set({ ...toRow(parsed.data), updatedAt: new Date() })
-    .where(eq(tenants.id, id));
+    .where(and(eq(tenants.id, id), eq(tenants.sessionId, sessionId)));
 
   revalidatePath("/tenants");
   revalidatePath(`/tenants/${id}`);
@@ -65,7 +70,10 @@ export async function updateTenant(
 }
 
 export async function deleteTenant(id: string): Promise<void> {
-  await db.delete(tenants).where(eq(tenants.id, id));
+  const sessionId = await getSessionId();
+  await db
+    .delete(tenants)
+    .where(and(eq(tenants.id, id), eq(tenants.sessionId, sessionId)));
   revalidatePath("/tenants");
   redirect("/tenants");
 }

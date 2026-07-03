@@ -10,6 +10,16 @@ import {
   primaryKey,
 } from "drizzle-orm/pg-core";
 
+export const sessions = pgTable("sessions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export type Session = typeof sessions.$inferSelect;
+export type NewSession = typeof sessions.$inferInsert;
+
 export const propertyTypeEnum = pgEnum("property_type", [
   "single_family",
   "multi_family",
@@ -30,6 +40,9 @@ export const propertyStatusEnum = pgEnum("property_status", [
 
 export const properties = pgTable("properties", {
   id: uuid("id").primaryKey().defaultRandom(),
+  sessionId: uuid("session_id")
+    .notNull()
+    .references(() => sessions.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   type: propertyTypeEnum("type").notNull().default("single_family"),
   status: propertyStatusEnum("status").notNull().default("active"),
@@ -60,6 +73,9 @@ export type NewProperty = typeof properties.$inferInsert;
 
 export const tenants = pgTable("tenants", {
   id: uuid("id").primaryKey().defaultRandom(),
+  sessionId: uuid("session_id")
+    .notNull()
+    .references(() => sessions.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   email: text("email"),
   phone: text("phone"),

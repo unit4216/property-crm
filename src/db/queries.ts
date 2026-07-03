@@ -1,6 +1,7 @@
 import "server-only";
-import { desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
+import { getSessionId } from "@/lib/session";
 import {
   properties,
   tenants,
@@ -12,24 +13,40 @@ import {
 } from "@/db/schema";
 
 export async function getProperties(): Promise<Property[]> {
-  return db.select().from(properties).orderBy(desc(properties.createdAt));
+  const sessionId = await getSessionId();
+  return db
+    .select()
+    .from(properties)
+    .where(eq(properties.sessionId, sessionId))
+    .orderBy(desc(properties.createdAt));
 }
 
 export async function getProperty(id: string): Promise<Property | null> {
+  const sessionId = await getSessionId();
   const rows = await db
     .select()
     .from(properties)
-    .where(eq(properties.id, id))
+    .where(and(eq(properties.id, id), eq(properties.sessionId, sessionId)))
     .limit(1);
   return rows[0] ?? null;
 }
 
 export async function getTenants(): Promise<Tenant[]> {
-  return db.select().from(tenants).orderBy(tenants.name);
+  const sessionId = await getSessionId();
+  return db
+    .select()
+    .from(tenants)
+    .where(eq(tenants.sessionId, sessionId))
+    .orderBy(tenants.name);
 }
 
 export async function getTenant(id: string): Promise<Tenant | null> {
-  const rows = await db.select().from(tenants).where(eq(tenants.id, id)).limit(1);
+  const sessionId = await getSessionId();
+  const rows = await db
+    .select()
+    .from(tenants)
+    .where(and(eq(tenants.id, id), eq(tenants.sessionId, sessionId)))
+    .limit(1);
   return rows[0] ?? null;
 }
 

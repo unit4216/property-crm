@@ -2,14 +2,17 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
+import { getSessionId } from "@/lib/session";
 import { properties, type NewProperty } from "@/db/schema";
 import { propertySchema, type FormState } from "@/lib/validation";
 
 // Maps validated input to DB column values. Drizzle `numeric` columns expect
 // strings, while `integer` columns take numbers; both are nullable.
-function toRow(input: ReturnType<typeof propertySchema.parse>): NewProperty {
+function toRow(
+  input: ReturnType<typeof propertySchema.parse>,
+): Omit<NewProperty, "sessionId"> {
   return {
     name: input.name,
     type: input.type,
@@ -45,7 +48,8 @@ export async function createProperty(
     };
   }
 
-  await db.insert(properties).values(toRow(parsed.data));
+  const sessionId = await getSessionId();
+  await db.insert(properties).values({ ...toRow(parsed.data), sessionId });
 
   revalidatePath("/");
   redirect("/");
@@ -65,10 +69,11 @@ export async function updateProperty(
     };
   }
 
+  const sessionId = await getSessionId();
   await db
     .update(properties)
     .set({ ...toRow(parsed.data), updatedAt: new Date() })
-    .where(eq(properties.id, id));
+    .where(and(eq(properties.id, id), eq(properties.sessionId, sessionId)));
 
   revalidatePath("/");
   revalidatePath(`/properties/${id}`);
@@ -76,7 +81,10 @@ export async function updateProperty(
 }
 
 export async function deleteProperty(id: string): Promise<void> {
-  await db.delete(properties).where(eq(properties.id, id));
+  const sessionId = await getSessionId();
+  await db
+    .delete(properties)
+    .where(and(eq(properties.id, id), eq(properties.sessionId, sessionId)));
   revalidatePath("/");
   redirect("/");
 }
