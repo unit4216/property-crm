@@ -8,9 +8,12 @@ import { LineChart } from "@mui/x-charts/LineChart";
 
 type PieDatum = { id: string; value: number; label: string; color: string };
 type OccupancyDatum = { label: string; rate: number };
+type TypeDatum = { label: string; count: number };
 
-// The occupancy trend line uses the lime accent so the dashboard reads branded.
+// The occupancy trend line and the properties-by-type lollipop dots both use
+// the lime accent so the dashboard reads branded.
 const LINE_COLOR = "#cbf74f";
+const DOT_COLOR = "#cbf74f";
 
 // Muted tick labels in the app's font scale.
 const TICK_LABEL_STYLE = { fontSize: 12, fill: "var(--ink-muted)" } as const;
@@ -90,21 +93,6 @@ export function PropertyStatusChart({ data }: { data: PieDatum[] }) {
   );
 }
 
-export function LeaseStatusChart({ data }: { data: PieDatum[] }) {
-  return (
-    <ChartCard title="Leases by status">
-      {data.length === 0 ? (
-        <EmptyChart message="No leases yet." />
-      ) : (
-        <PieChart
-          series={[{ ...PIE_SERIES, data }]}
-          height={220}
-          sx={PIE_SX}
-        />
-      )}
-    </ChartCard>
-  );
-}
 
 export function OccupancyTrendChart({ data }: { data: OccupancyDatum[] }) {
   return (
@@ -148,6 +136,64 @@ export function OccupancyTrendChart({ data }: { data: OccupancyDatum[] }) {
           hideLegend
           sx={LINE_SX}
         />
+      )}
+    </ChartCard>
+  );
+}
+
+// Hand-rolled lollipop chart: a hairline stem per row ending in a lime dot
+// (with a translucent halo) sized by count against the largest category.
+// Preferred over a bar chart here for a lighter, less default look that fits
+// the app's restrained styling.
+function Lollipop({ data }: { data: TypeDatum[] }) {
+  const max = Math.max(1, ...data.map((d) => d.count));
+
+  return (
+    <ul className="flex h-[220px] flex-col justify-center gap-3">
+      {data.map((d) => {
+        const pct = (d.count / max) * 100;
+        return (
+          <li key={d.label} className="flex items-center gap-3">
+            <span
+              className="w-28 shrink-0 truncate text-sm text-ink-muted"
+              title={d.label}
+            >
+              {d.label}
+            </span>
+            <div className="relative h-3 flex-1">
+              <span
+                className="absolute left-0 top-1/2 h-px -translate-y-1/2"
+                style={{
+                  width: `${pct}%`,
+                  backgroundColor: "var(--border-strong)",
+                }}
+              />
+              <span
+                className="absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
+                style={{
+                  left: `${pct}%`,
+                  backgroundColor: DOT_COLOR,
+                  boxShadow: `0 0 0 3px ${DOT_COLOR}33`,
+                }}
+              />
+            </div>
+            <span className="w-5 shrink-0 text-right text-sm font-medium tabular-nums">
+              {d.count}
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+export function PropertyTypeChart({ dataset }: { dataset: TypeDatum[] }) {
+  return (
+    <ChartCard title="Properties by type">
+      {dataset.length === 0 ? (
+        <EmptyChart message="No properties yet." />
+      ) : (
+        <Lollipop data={dataset} />
       )}
     </ChartCard>
   );
