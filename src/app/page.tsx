@@ -48,17 +48,24 @@ type ListRow = {
   meta?: string;
 };
 
+const LIST_CARD_MAX_ROWS = 3;
+
 function ListCard({
   title,
   count,
   emptyMessage,
   rows,
+  seeMoreHref,
 }: {
   title: string;
   count: number;
   emptyMessage: string;
   rows: ListRow[];
+  seeMoreHref: string;
 }) {
+  const visibleRows = rows.slice(0, LIST_CARD_MAX_ROWS);
+  const hasMore = rows.length > LIST_CARD_MAX_ROWS;
+
   return (
     <Paper variant="outlined">
       <div
@@ -70,20 +77,16 @@ function ListCard({
         </Typography>
         <span className="text-sm tabular-nums text-ink-muted">{count}</span>
       </div>
-      {rows.length === 0 ? (
+      {visibleRows.length === 0 ? (
         <p className="px-4 py-6 text-center text-sm text-ink-muted">
           {emptyMessage}
         </p>
       ) : (
         <ul>
-          {rows.map((row, i) => (
+          {visibleRows.map((row, i) => (
             <li
               key={row.href + i}
-              style={
-                i < rows.length - 1
-                  ? { borderBottom: "1px solid var(--border)" }
-                  : undefined
-              }
+              style={{ borderBottom: "1px solid var(--border)" }}
             >
               <Link
                 href={row.href}
@@ -104,6 +107,14 @@ function ListCard({
             </li>
           ))}
         </ul>
+      )}
+      {visibleRows.length > 0 && (
+        <Link
+          href={seeMoreHref}
+          className="flex items-center justify-center px-4 py-2.5 text-sm font-medium text-ink-muted hover:bg-[var(--surface-muted)]"
+        >
+          {hasMore ? `See all ${count} →` : "View all →"}
+        </Link>
       )}
     </Paper>
   );
@@ -232,6 +243,7 @@ export default async function DashboardPage() {
             title={`Leases expiring in the next ${LEASE_EXPIRY_WINDOW_DAYS} days`}
             count={expiringLeases.length}
             emptyMessage="No leases expiring soon."
+            seeMoreHref="/leases"
             rows={expiringLeases.map((l) => ({
               href: `/properties/${l.property.id}`,
               primary: l.property.name,
@@ -243,6 +255,7 @@ export default async function DashboardPage() {
             title="Vacant & listed properties"
             count={vacantProperties.length}
             emptyMessage="No vacant or listed properties."
+            seeMoreHref="/properties"
             rows={vacantProperties.map((p) => ({
               href: `/properties/${p.id}`,
               primary: p.name,
@@ -254,6 +267,7 @@ export default async function DashboardPage() {
             title="Upcoming move-ins"
             count={upcomingLeases.length}
             emptyMessage="No upcoming leases."
+            seeMoreHref="/leases"
             rows={upcomingLeases.map((l) => ({
               href: `/properties/${l.property.id}`,
               primary: l.property.name,
@@ -265,6 +279,7 @@ export default async function DashboardPage() {
             title="Tenants without an active lease"
             count={idleTenants.length}
             emptyMessage="Every tenant has an active lease."
+            seeMoreHref="/tenants"
             rows={idleTenants.map((t) => ({
               href: `/tenants/${t.id}`,
               primary: t.name,
