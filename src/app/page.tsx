@@ -75,7 +75,7 @@ function ListCard({
           {title}
         </Typography>
         <span
-          className={`rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums ${
+          className={`inline-flex h-5 min-w-5 items-center justify-center rounded px-1 text-xs font-semibold tabular-nums ${
             count === 0
               ? "bg-[var(--surface-muted)] text-ink-muted"
               : "bg-[var(--ink)] text-white"
