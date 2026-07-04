@@ -1,8 +1,9 @@
 import "server-only";
 import { cache } from "react";
 import { cookies } from "next/headers";
+import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { sessions } from "@/db/schema";
+import { sessions, type Session } from "@/db/schema";
 import { seedDemoData } from "@/db/seed-data";
 import { SESSION_COOKIE } from "@/lib/session-cookie";
 
@@ -27,4 +28,15 @@ export const getSessionId = cache(async (): Promise<string> => {
   }
 
   return id;
+});
+
+// Returns the current visitor's session row, including when it was created.
+// Memoized per request.
+export const getSession = cache(async (): Promise<Session> => {
+  const id = await getSessionId();
+  const [session] = await db
+    .select()
+    .from(sessions)
+    .where(eq(sessions.id, id));
+  return session;
 });
