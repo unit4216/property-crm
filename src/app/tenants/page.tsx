@@ -1,38 +1,69 @@
 import Link from "next/link";
-import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Typography from "@mui/material/Typography";
-import { getTenants } from "@/db/queries";
+import { getTenantsPage, TENANT_SORT_KEYS } from "@/db/queries";
 import { Avatar } from "@/components/avatar";
+import { DataTable, RowChevron, type Column } from "@/components/data-table";
+import { TableSearch } from "@/components/table-search";
+import { Pagination } from "@/components/pagination";
+import { parseTableParams, type RawSearchParams } from "@/lib/table-params";
+import type { Tenant } from "@/db/schema";
 
 export const dynamic = "force-dynamic";
 
-function ChevronRight() {
-  return (
-    <svg
-      className="size-4 text-ink-faint"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="m9 18 6-6-6-6" />
-    </svg>
-  );
-}
+const columns: Column<Tenant>[] = [
+  {
+    key: "name",
+    header: "Tenant",
+    sortable: true,
+    render: (t) => (
+      <div className="flex min-w-0 items-center gap-3">
+        <Avatar name={t.name} />
+        <Link
+          href={`/tenants/${t.id}`}
+          className="block truncate font-medium after:absolute after:inset-0 after:content-['']"
+        >
+          {t.name}
+        </Link>
+      </div>
+    ),
+  },
+  {
+    key: "email",
+    header: "Email",
+    sortable: true,
+    hideBelow: "sm",
+    render: (t) => <span className="truncate text-sm">{t.email ?? "—"}</span>,
+  },
+  {
+    key: "phone",
+    header: "Phone",
+    sortable: true,
+    hideBelow: "md",
+    render: (t) => (
+      <span className="truncate text-sm text-ink-muted">{t.phone ?? "—"}</span>
+    ),
+  },
+  {
+    key: "chevron",
+    header: "",
+    align: "right",
+    render: () => <RowChevron />,
+  },
+];
 
-export default async function TenantsPage() {
-  const tenants = await getTenants();
+export default async function TenantsPage({
+  searchParams,
+}: {
+  searchParams: Promise<RawSearchParams>;
+}) {
+  const sp = await searchParams;
+  const params = parseTableParams(sp, {
+    sortKeys: TENANT_SORT_KEYS,
+    defaultSort: "name",
+    defaultDir: "asc",
+  });
+
+  const { rows, total } = await getTenantsPage(params);
 
   return (
     <div>
@@ -43,8 +74,7 @@ export default async function TenantsPage() {
             Tenants
           </h1>
           <p className="mt-2 text-sm text-ink-muted">
-            {tenants.length} {tenants.length === 1 ? "tenant" : "tenants"} on
-            file.
+            {total} {total === 1 ? "tenant" : "tenants"} on file.
           </p>
         </div>
         <Link href="/tenants/new">
@@ -54,64 +84,28 @@ export default async function TenantsPage() {
         </Link>
       </div>
 
-      {tenants.length === 0 ? (
-        <Paper variant="outlined" sx={{ mt: 3, p: 6, textAlign: "center", borderStyle: "dashed" }}>
-          <Typography sx={{ color: "var(--ink-muted)" }}>
-            No tenants yet.
-          </Typography>
-          <Box sx={{ mt: 2 }}>
-            <Link href="/tenants/new">
-              <Button variant="contained" component="span">
-                Add your first tenant
-              </Button>
-            </Link>
-          </Box>
-        </Paper>
-      ) : (
-        <Stack sx={{ mt: 3, bgcolor: "var(--surface)" }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Tenant</TableCell>
-                <TableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
-                  Contact
-                </TableCell>
-                <TableCell align="right" sx={{ width: 1 }} />
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {tenants.map((t) => (
-                <TableRow key={t.id} hover sx={{ position: "relative" }}>
-                  <TableCell>
-                    <div className="flex min-w-0 items-center gap-3">
-                      <Avatar name={t.name} />
-                      <Link
-                        href={`/tenants/${t.id}`}
-                        className="block truncate font-medium after:absolute after:inset-0 after:content-['']"
-                      >
-                        {t.name}
-                      </Link>
-                    </div>
-                  </TableCell>
-
-                  <TableCell
-                    sx={{ display: { xs: "none", sm: "table-cell" } }}
-                  >
-                    <p className="truncate text-sm">{t.email ?? "—"}</p>
-                    <p className="truncate text-sm text-ink-muted">
-                      {t.phone ?? ""}
-                    </p>
-                  </TableCell>
-
-                  <TableCell align="right">
-                    <ChevronRight />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Stack>
-      )}
+      <div className="mt-6">
+        <TableSearch placeholder="Search tenants…" />
+      </div>
+      <div className="mt-3">
+        <DataTable
+          columns={columns}
+          rows={rows}
+          sort={params.sort}
+          dir={params.dir}
+          searchParams={sp}
+          empty={
+            params.q ? `No tenants match “${params.q}”.` : "No tenants yet."
+          }
+        />
+        <Pagination
+          page={params.page}
+          pageSize={params.pageSize}
+          total={total}
+          searchParams={sp}
+          noun="tenant"
+        />
+      </div>
     </div>
   );
 }
