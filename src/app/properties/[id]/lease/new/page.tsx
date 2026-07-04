@@ -5,6 +5,7 @@ import Button from "@mui/material/Button";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import { getProperty, getTenants } from "@/db/queries";
+import { PlusIcon } from "@/components/plus-icon";
 import { createLease } from "../../../lease-actions";
 import { LeaseForm } from "../../../lease-form";
 
@@ -44,7 +45,7 @@ export default async function NewLeasePage({
           </Typography>
           <Box sx={{ mt: 2 }}>
             <Link href="/tenants/new">
-              <Button variant="contained" component="span">
+              <Button variant="contained" component="span" startIcon={<PlusIcon />}>
                 Add a tenant
               </Button>
             </Link>

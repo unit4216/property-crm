@@ -7,6 +7,7 @@ import { StatTile } from "@/components/stat-tile";
 import { DataTable, RowChevron, type Column } from "@/components/data-table";
 import { TableSearch } from "@/components/table-search";
 import { Pagination } from "@/components/pagination";
+import { PlusIcon } from "@/components/plus-icon";
 import { parseTableParams, type RawSearchParams } from "@/lib/table-params";
 import { PROPERTY_TYPES } from "@/lib/validation";
 import { formatCityLine, formatMoney } from "@/lib/format";
@@ -115,7 +116,7 @@ export default async function PropertiesPage({
           </p>
         </div>
         <Link href="/properties/new">
-          <Button variant="contained" component="span">
+          <Button variant="contained" component="span" startIcon={<PlusIcon />}>
             New property
           </Button>
         </Link>

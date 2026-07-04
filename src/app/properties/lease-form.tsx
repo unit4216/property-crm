@@ -12,6 +12,7 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import type { Tenant } from "@/db/schema";
+import { PlusIcon } from "@/components/plus-icon";
 import { LEASE_STATUSES, type FormState } from "@/lib/validation";
 
 type TenantRow = { key: number; tenantId: string | null };
@@ -145,8 +146,9 @@ export function LeaseForm({
                 size="small"
                 onClick={handleAddTenantRow}
                 sx={{ alignSelf: "flex-start" }}
+                startIcon={<PlusIcon />}
               >
-                + Add tenant
+                Add tenant
               </Button>
             </Stack>
             {errors.tenantIds?.[0] && (
