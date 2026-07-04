@@ -4,13 +4,13 @@ import type { ReactNode } from "react";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import { PieChart } from "@mui/x-charts/PieChart";
-import { BarChart } from "@mui/x-charts/BarChart";
+import { LineChart } from "@mui/x-charts/LineChart";
 
 type PieDatum = { id: string; value: number; label: string; color: string };
-type TypeDatum = { label: string; count: number };
+type OccupancyDatum = { label: string; rate: number };
 
-// Single-metric bars use the lime accent so the dashboard reads as branded.
-const BAR_COLOR = "#cbf74f";
+// The occupancy trend line uses the lime accent so the dashboard reads branded.
+const LINE_COLOR = "#cbf74f";
 
 // Muted tick labels in the app's font scale.
 const TICK_LABEL_STYLE = { fontSize: 12, fill: "var(--ink-muted)" } as const;
@@ -45,6 +45,15 @@ const PIE_SERIES = {
   arcLabel: "value" as const,
   arcLabelMinAngle: 20,
 };
+
+// Line chart chrome: a thicker accent line over a faint filled area, with
+// small white-ringed marks at each month.
+const LINE_SX = {
+  ...CHART_SX,
+  "& .MuiLineElement-root": { strokeWidth: 2.5 },
+  "& .MuiAreaElement-root": { fillOpacity: 0.15 },
+  "& .MuiMarkElement-root": { stroke: "#fff", strokeWidth: 2 },
+} as const;
 
 function ChartCard({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -97,48 +106,47 @@ export function LeaseStatusChart({ data }: { data: PieDatum[] }) {
   );
 }
 
-export function PropertyTypeChart({ dataset }: { dataset: TypeDatum[] }) {
-  const maxCount = Math.max(1, ...dataset.map((d) => d.count));
-  // Integer-only ticks — counts are whole numbers, so a linear scale's
-  // default decimal ticks (0.05, 0.10, ...) would be misleading here.
-  const ticks = Array.from({ length: maxCount + 1 }, (_, i) => i);
-
+export function OccupancyTrendChart({ data }: { data: OccupancyDatum[] }) {
   return (
-    <ChartCard title="Properties by type">
-      {dataset.length === 0 ? (
-        <EmptyChart message="No properties yet." />
+    <ChartCard title="Occupancy rate · last 12 months">
+      {data.length === 0 ? (
+        <EmptyChart message="No occupancy data yet." />
       ) : (
-        <BarChart
-          layout="horizontal"
-          dataset={dataset}
-          yAxis={[
-            {
-              scaleType: "band",
-              dataKey: "label",
-              width: "auto",
-              disableLine: true,
-              disableTicks: true,
-              tickLabelStyle: TICK_LABEL_STYLE,
-            },
-          ]}
+        <LineChart
+          dataset={data}
           xAxis={[
             {
-              scaleType: "linear",
-              min: 0,
-              max: maxCount,
-              tickInterval: ticks,
-              valueFormatter: (value: number) => value.toString(),
+              scaleType: "point",
+              dataKey: "label",
               disableLine: true,
               disableTicks: true,
               tickLabelStyle: TICK_LABEL_STYLE,
             },
           ]}
-          series={[{ dataKey: "count", label: "Properties", color: BAR_COLOR }]}
-          grid={{ vertical: true }}
-          borderRadius={2}
+          yAxis={[
+            {
+              min: 0,
+              max: 100,
+              disableLine: true,
+              disableTicks: true,
+              tickLabelStyle: TICK_LABEL_STYLE,
+              valueFormatter: (value: number) => `${value}%`,
+            },
+          ]}
+          series={[
+            {
+              dataKey: "rate",
+              label: "Occupancy",
+              color: LINE_COLOR,
+              area: true,
+              curve: "monotoneX",
+              valueFormatter: (value) => (value == null ? "" : `${value}%`),
+            },
+          ]}
+          grid={{ horizontal: true }}
           height={220}
           hideLegend
-          sx={CHART_SX}
+          sx={LINE_SX}
         />
       )}
     </ChartCard>

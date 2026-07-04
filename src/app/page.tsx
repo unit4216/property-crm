@@ -5,11 +5,12 @@ import { getProperties, getTenants, getAllLeases } from "@/db/queries";
 import { StatTile } from "@/components/stat-tile";
 import {
   PropertyStatusChart,
-  PropertyTypeChart,
+  OccupancyTrendChart,
   LeaseStatusChart,
 } from "@/components/dashboard-charts";
 import type { Property, Lease } from "@/db/schema";
-import { PROPERTY_TYPES, PROPERTY_STATUSES, LEASE_STATUSES } from "@/lib/validation";
+import { monthlyOccupancy } from "@/lib/occupancy";
+import { PROPERTY_STATUSES, LEASE_STATUSES } from "@/lib/validation";
 import { formatCityLine, formatDate, formatMoney } from "@/lib/format";
 
 // Always render fresh from the database.
@@ -139,12 +140,13 @@ export default async function DashboardPage() {
     (sum, p) => sum + (p.rentAmount ? Number(p.rentAmount) : 0),
     0,
   );
-  const occupied = properties.filter(
-    (p) => p.status === "occupied" || p.status === "active",
-  ).length;
-  const occupancyRate =
-    properties.length > 0 ? Math.round((occupied / properties.length) * 100) : 0;
   const activeLeaseCount = leases.filter((l) => l.status === "active").length;
+
+  // Occupancy rate trend over the last 12 months. The current occupancy tile is
+  // the latest point on the trend, so both use the same lease-coverage
+  // definition and always agree.
+  const occupancyTrend = monthlyOccupancy(properties.length, leases);
+  const occupancyRate = occupancyTrend.at(-1)?.rate ?? 0;
 
   // Properties by status
   const propertyStatusData = (
@@ -157,15 +159,6 @@ export default async function DashboardPage() {
       color: PROPERTY_STATUS_COLORS[status],
     }))
     .filter((d) => d.value > 0);
-
-  // Properties by type. Uses a shorter label than PROPERTY_TYPES for the
-  // single-family case so it fits the chart's category axis without eliding.
-  const propertyTypeDataset = (Object.keys(PROPERTY_TYPES) as Property["type"][])
-    .map((type) => ({
-      label: type === "single_family" ? "Single-family" : PROPERTY_TYPES[type],
-      count: properties.filter((p) => p.type === type).length,
-    }))
-    .filter((d) => d.count > 0);
 
   // Leases by status
   const leaseStatusData = (Object.keys(LEASE_STATUSES) as Lease["status"][])
@@ -237,7 +230,7 @@ export default async function DashboardPage() {
       </div>
 
       <div className="mt-4">
-        <PropertyTypeChart dataset={propertyTypeDataset} />
+        <OccupancyTrendChart data={occupancyTrend} />
       </div>
 
       {/* Attention needed */}

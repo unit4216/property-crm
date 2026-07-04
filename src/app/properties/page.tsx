@@ -1,6 +1,11 @@
 import Link from "next/link";
 import Button from "@mui/material/Button";
-import { getProperties, getPropertiesPage, PROPERTY_SORT_KEYS } from "@/db/queries";
+import {
+  getProperties,
+  getPropertiesPage,
+  getAllLeases,
+  PROPERTY_SORT_KEYS,
+} from "@/db/queries";
 import { StatusBadge } from "@/components/badge";
 import { Avatar } from "@/components/avatar";
 import { StatTile } from "@/components/stat-tile";
@@ -9,6 +14,7 @@ import { TableSearch } from "@/components/table-search";
 import { TableTypeFilter } from "@/components/table-type-filter";
 import { Pagination } from "@/components/pagination";
 import { PlusIcon } from "@/components/plus-icon";
+import { currentOccupiedCount } from "@/lib/occupancy";
 import { parseTableParams, type RawSearchParams } from "@/lib/table-params";
 import { PROPERTY_TYPES } from "@/lib/validation";
 import { formatCityLine, formatMoney } from "@/lib/format";
@@ -90,8 +96,9 @@ export default async function PropertiesPage({
   });
 
   // Full list drives the portfolio KPIs; the page drives the table.
-  const [all, { rows, total }] = await Promise.all([
+  const [all, leases, { rows, total }] = await Promise.all([
     getProperties(),
+    getAllLeases(),
     getPropertiesPage(params),
   ]);
 
@@ -99,9 +106,8 @@ export default async function PropertiesPage({
     (sum, p) => sum + (p.rentAmount ? Number(p.rentAmount) : 0),
     0,
   );
-  const occupied = all.filter(
-    (p) => p.status === "occupied" || p.status === "active",
-  ).length;
+  // Occupancy from lease coverage, matching the dashboard (not the status column).
+  const occupied = currentOccupiedCount(leases);
 
   return (
     <div>
@@ -132,10 +138,7 @@ export default async function PropertiesPage({
           accent
         />
         <StatTile label="Total properties" value={all.length.toString()} />
-        <StatTile
-          label="Active / occupied"
-          value={`${occupied} of ${all.length}`}
-        />
+        <StatTile label="Occupied" value={`${occupied} of ${all.length}`} />
       </div>
 
       {/* Search + table */}
