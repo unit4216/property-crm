@@ -5,6 +5,7 @@ import { Avatar } from "@/components/avatar";
 import { DataTable, RowChevron, type Column } from "@/components/data-table";
 import { TableSearch } from "@/components/table-search";
 import { Pagination } from "@/components/pagination";
+import { PlusIcon } from "@/components/plus-icon";
 import { parseTableParams, type RawSearchParams } from "@/lib/table-params";
 import type { Tenant } from "@/db/schema";
 
@@ -78,7 +79,7 @@ export default async function TenantsPage({
           </p>
         </div>
         <Link href="/tenants/new">
-          <Button variant="contained" component="span">
+          <Button variant="contained" component="span" startIcon={<PlusIcon />}>
             New tenant
           </Button>
         </Link>
