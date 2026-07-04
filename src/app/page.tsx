@@ -17,22 +17,21 @@ export const dynamic = "force-dynamic";
 
 const LEASE_EXPIRY_WINDOW_DAYS = 30;
 
-// Slots 1-5 of the validated categorical order (blue, aqua, yellow, green,
-// violet), assigned in the same order as propertyStatusEnum so the mapping
-// is stable as statuses come and go.
+// A bright, high-chroma categorical palette in the family of the lime accent
+// (--accent, #cbf74f) — evenly spaced hues at similar lightness so the charts
+// feel branded rather than stock. Assigned in enum order for a stable mapping.
 const PROPERTY_STATUS_COLORS: Record<Property["status"], string> = {
-  active: "#2a78d6",
-  vacant: "#1baf7a",
-  occupied: "#eda100",
-  under_maintenance: "#008300",
-  listed: "#4a3aa7",
+  active: "#cbf74f", // lime (accent)
+  occupied: "#5cb8ff", // sky blue
+  vacant: "#ffc24f", // amber
+  under_maintenance: "#ff8f6b", // coral
+  listed: "#b88cff", // violet
 };
 
-// Slots 1-3 of the same order, assigned in leaseStatusEnum order.
 const LEASE_STATUS_COLORS: Record<Lease["status"], string> = {
-  upcoming: "#2a78d6",
-  active: "#1baf7a",
-  ended: "#eda100",
+  upcoming: "#5cb8ff", // sky blue
+  active: "#cbf74f", // lime (accent)
+  ended: "#b88cff", // violet
 };
 
 function daysFromNow(days: number) {
