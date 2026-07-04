@@ -23,6 +23,17 @@ export function formatDate(value: Date): string {
   return dateFmt.format(value);
 }
 
+const dateTimeFmt = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+});
+
+export function formatDateTime(value: Date): string {
+  return dateTimeFmt.format(value);
+}
+
 /** Single-line street address. */
 export function formatAddressLine(p: Property): string {
   return [p.addressLine1, p.addressLine2].filter(Boolean).join(", ");

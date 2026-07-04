@@ -8,6 +8,8 @@ import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
+import Avatar from "@mui/material/Avatar";
+import Typography from "@mui/material/Typography";
 
 function GridIcon({ className }: { className?: string }) {
   return (
@@ -113,7 +115,7 @@ const nav = [
   { href: "/leases", label: "Leases", icon: LeaseIcon, match: /^\/leases/ },
 ];
 
-export function Sidebar() {
+export function Sidebar({ sessionStartedAt }: { sessionStartedAt: string }) {
   const pathname = usePathname();
 
   return (
@@ -181,6 +183,44 @@ export function Sidebar() {
             );
           })}
         </List>
+      </Box>
+
+      <Box sx={{ p: 1.5, borderTop: "1px solid var(--border)" }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.25,
+            px: 1,
+            py: 0.75,
+          }}
+        >
+          <Avatar
+            sx={{
+              width: 32,
+              height: 32,
+              fontSize: "0.8125rem",
+              bgcolor: "var(--ink)",
+              color: "var(--accent)",
+            }}
+          >
+            AU
+          </Avatar>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography
+              noWrap
+              sx={{ fontSize: "0.875rem", fontWeight: 500, color: "var(--ink)" }}
+            >
+              Anonymous User
+            </Typography>
+            <Typography
+              noWrap
+              sx={{ fontSize: "0.75rem", color: "var(--ink-muted)" }}
+            >
+              Started {sessionStartedAt}
+            </Typography>
+          </Box>
+        </Box>
       </Box>
     </Drawer>
   );
