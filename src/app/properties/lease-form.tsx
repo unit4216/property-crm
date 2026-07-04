@@ -101,8 +101,8 @@ export function LeaseForm({
                       }
                       getOptionLabel={(t) => t.name}
                       isOptionEqualToValue={(a, b) => a.id === b.id}
-                      renderOption={(props, t) => (
-                        <li {...props} key={t.id}>
+                      renderOption={({ key, ...props }, t) => (
+                        <li key={t.id} {...props}>
                           {t.name}
                           {t.email && (
                             <Typography
