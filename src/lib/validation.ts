@@ -83,12 +83,21 @@ export type FormState = {
   fieldErrors?: Record<string, string[]>;
 };
 
-export const tenantSchema = z.object({
-  name: z.string().trim().min(1, "Name is required").max(200),
-  email: optionalEmail,
-  phone: optionalText,
-  notes: optionalText,
-});
+export const tenantSchema = z
+  .object({
+    name: z.string().trim().min(1, "Name is required").max(200),
+    email: optionalEmail,
+    phone: optionalText,
+    notes: optionalText,
+  })
+  .superRefine((val, ctx) => {
+    // A tenant needs at least one way to be reached.
+    if (!val.email && !val.phone) {
+      const message = "Add an email or phone number.";
+      ctx.addIssue({ code: "custom", message, path: ["email"] });
+      ctx.addIssue({ code: "custom", message, path: ["phone"] });
+    }
+  });
 
 export type TenantInput = z.infer<typeof tenantSchema>;
 

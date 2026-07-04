@@ -55,22 +55,22 @@ export function TenantForm({
               <TextField
                 id="email"
                 name="email"
-                label="Email (optional)"
+                label="Email"
                 type="email"
                 defaultValue={tenant?.email ?? ""}
                 placeholder="jordan@example.com"
                 error={!!errors.email}
-                helperText={errors.email?.[0]}
+                helperText={errors.email?.[0] ?? "Email or phone required"}
                 fullWidth
               />
               <TextField
                 id="phone"
                 name="phone"
-                label="Phone (optional)"
+                label="Phone"
                 defaultValue={tenant?.phone ?? ""}
                 placeholder="(555) 123-4567"
                 error={!!errors.phone}
-                helperText={errors.phone?.[0]}
+                helperText={errors.phone?.[0] ?? "Email or phone required"}
                 fullWidth
               />
             </Stack>
