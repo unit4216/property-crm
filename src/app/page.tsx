@@ -6,11 +6,11 @@ import { StatTile } from "@/components/stat-tile";
 import {
   PropertyStatusChart,
   OccupancyTrendChart,
-  LeaseStatusChart,
+  PropertyTypeChart,
 } from "@/components/dashboard-charts";
-import type { Property, Lease } from "@/db/schema";
+import type { Property } from "@/db/schema";
 import { monthlyOccupancy } from "@/lib/occupancy";
-import { PROPERTY_STATUSES, LEASE_STATUSES } from "@/lib/validation";
+import { PROPERTY_TYPES, PROPERTY_STATUSES } from "@/lib/validation";
 import { formatCityLine, formatDate, formatMoney } from "@/lib/format";
 
 // Always render fresh from the database.
@@ -27,12 +27,6 @@ const PROPERTY_STATUS_COLORS: Record<Property["status"], string> = {
   vacant: "#ffc24f", // amber
   under_maintenance: "#ff8f6b", // coral
   listed: "#b88cff", // violet
-};
-
-const LEASE_STATUS_COLORS: Record<Lease["status"], string> = {
-  upcoming: "#5cb8ff", // sky blue
-  active: "#cbf74f", // lime (accent)
-  ended: "#b88cff", // violet
 };
 
 function daysFromNow(days: number) {
@@ -148,6 +142,15 @@ export default async function DashboardPage() {
   const occupancyTrend = monthlyOccupancy(properties.length, leases);
   const occupancyRate = occupancyTrend.at(-1)?.rate ?? 0;
 
+  // Properties by type. Uses a shorter label than PROPERTY_TYPES for the
+  // single-family case so it fits the lollipop's label column without eliding.
+  const propertyTypeDataset = (Object.keys(PROPERTY_TYPES) as Property["type"][])
+    .map((type) => ({
+      label: type === "single_family" ? "Single-family" : PROPERTY_TYPES[type],
+      count: properties.filter((p) => p.type === type).length,
+    }))
+    .filter((d) => d.count > 0);
+
   // Properties by status
   const propertyStatusData = (
     Object.keys(PROPERTY_STATUSES) as Property["status"][]
@@ -157,16 +160,6 @@ export default async function DashboardPage() {
       value: properties.filter((p) => p.status === status).length,
       label: PROPERTY_STATUSES[status],
       color: PROPERTY_STATUS_COLORS[status],
-    }))
-    .filter((d) => d.value > 0);
-
-  // Leases by status
-  const leaseStatusData = (Object.keys(LEASE_STATUSES) as Lease["status"][])
-    .map((status) => ({
-      id: status,
-      value: leases.filter((l) => l.status === status).length,
-      label: LEASE_STATUSES[status],
-      color: LEASE_STATUS_COLORS[status],
     }))
     .filter((d) => d.value > 0);
 
@@ -226,7 +219,7 @@ export default async function DashboardPage() {
       {/* Charts */}
       <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <PropertyStatusChart data={propertyStatusData} />
-        <LeaseStatusChart data={leaseStatusData} />
+        <PropertyTypeChart dataset={propertyTypeDataset} />
       </div>
 
       <div className="mt-4">
