@@ -74,7 +74,15 @@ function ListCard({
         <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
           {title}
         </Typography>
-        <span className="text-sm tabular-nums text-ink-muted">{count}</span>
+        <span
+          className={`rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums ${
+            count === 0
+              ? "bg-[var(--surface-muted)] text-ink-muted"
+              : "bg-[var(--ink)] text-white"
+          }`}
+        >
+          {count}
+        </span>
       </div>
       {visibleRows.length === 0 ? (
         <p className="px-4 py-6 text-center text-sm text-ink-muted">
