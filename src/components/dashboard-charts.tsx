@@ -35,11 +35,6 @@ const CHART_SX = {
 // Bright slices carry dark ink arc labels (white would vanish on the lime).
 const PIE_SX = {
   ...CHART_SX,
-  "& .MuiPieArcLabel-root": {
-    fill: "var(--ink)",
-    fontWeight: 600,
-    fontSize: 12,
-  },
 } as const;
 
 // Donut with rounded slice corners and a gap between slices.
@@ -47,8 +42,6 @@ const PIE_SERIES = {
   innerRadius: 40,
   paddingAngle: 5,
   cornerRadius: 3,
-  arcLabel: "value" as const,
-  arcLabelMinAngle: 20,
 };
 
 // Line chart chrome: a thicker accent line over a faint filled area, with
