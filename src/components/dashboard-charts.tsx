@@ -1,8 +1,10 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import { PieChart } from "@mui/x-charts/PieChart";
 import { LineChart } from "@mui/x-charts/LineChart";
 
@@ -58,12 +60,23 @@ const LINE_SX = {
   "& .MuiMarkElement-root": { stroke: "#fff", strokeWidth: 2 },
 } as const;
 
-function ChartCard({ title, children }: { title: string; children: ReactNode }) {
+function ChartCard({
+  title,
+  actions,
+  children,
+}: {
+  title: string;
+  actions?: ReactNode;
+  children: ReactNode;
+}) {
   return (
     <Paper variant="outlined" sx={{ p: 2 }}>
-      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-        {title}
-      </Typography>
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+          {title}
+        </Typography>
+        {actions}
+      </div>
       {children}
     </Paper>
   );
@@ -94,14 +107,42 @@ export function PropertyStatusChart({ data }: { data: PieDatum[] }) {
 }
 
 
+const OCCUPANCY_RANGES = [
+  { months: 3, label: "3M" },
+  { months: 6, label: "6M" },
+  { months: 12, label: "12M" },
+] as const;
+type OccupancyRangeMonths = (typeof OCCUPANCY_RANGES)[number]["months"];
+
 export function OccupancyTrendChart({ data }: { data: OccupancyDatum[] }) {
+  const [rangeMonths, setRangeMonths] = useState<OccupancyRangeMonths>(12);
+  const visibleData = data.slice(-rangeMonths);
+
   return (
-    <ChartCard title="Occupancy rate · last 12 months">
-      {data.length === 0 ? (
+    <ChartCard
+      title={`Occupancy rate · last ${rangeMonths} months`}
+      actions={
+        <ToggleButtonGroup
+          value={rangeMonths}
+          exclusive
+          size="small"
+          onChange={(_, next) => {
+            if (next !== null) setRangeMonths(next);
+          }}
+        >
+          {OCCUPANCY_RANGES.map(({ months, label }) => (
+            <ToggleButton key={months} value={months} sx={{ px: 1.5, py: 0.25, fontSize: "0.75rem" }}>
+              {label}
+            </ToggleButton>
+          ))}
+        </ToggleButtonGroup>
+      }
+    >
+      {visibleData.length === 0 ? (
         <EmptyChart message="No occupancy data yet." />
       ) : (
         <LineChart
-          dataset={data}
+          dataset={visibleData}
           xAxis={[
             {
               scaleType: "point",
