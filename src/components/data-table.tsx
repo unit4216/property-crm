@@ -87,7 +87,7 @@ export function DataTable<T extends { id: string }>({
   empty: ReactNode;
 }) {
   return (
-    <Stack sx={{ bgcolor: "var(--surface)" }}>
+    <Stack sx={{ bgcolor: "var(--surface)", overflowX: "auto" }}>
       <Table>
         <TableHead>
           <TableRow>
