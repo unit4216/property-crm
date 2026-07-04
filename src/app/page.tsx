@@ -199,7 +199,7 @@ export default async function DashboardPage() {
           Dashboard
         </h1>
         <p className="mt-2 text-sm text-ink-muted">
-          An overview of your portfolio.
+          An overview of your properties.
         </p>
       </div>
 
