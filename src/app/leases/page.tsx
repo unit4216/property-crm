@@ -89,7 +89,7 @@ export default async function LeasesPage({
       </div>
 
       <div className="mt-6">
-        <TableSearch placeholder="Search by property…" />
+        <TableSearch placeholder="Search by property or tenant…" />
       </div>
       <div className="mt-3">
         <DataTable

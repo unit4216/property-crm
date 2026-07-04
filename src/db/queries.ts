@@ -5,9 +5,11 @@ import {
   count,
   desc,
   eq,
+  exists,
   ilike,
   inArray,
   or,
+  sql,
   type SQL,
 } from "drizzle-orm";
 import type { PgColumn } from "drizzle-orm/pg-core";
@@ -221,9 +223,23 @@ export async function getLeasesPage(
   params: TableParams,
 ): Promise<Paginated<LeaseWithPropertyAndTenants>> {
   const sessionId = await getSessionId();
+  const term = params.q ? `%${params.q}%` : undefined;
   const where = and(
     eq(properties.sessionId, sessionId),
-    search(params.q, [properties.name]),
+    term
+      ? or(
+          ilike(properties.name, term),
+          exists(
+            db
+              .select({ one: sql`1` })
+              .from(leaseTenants)
+              .innerJoin(tenants, eq(leaseTenants.tenantId, tenants.id))
+              .where(
+                and(eq(leaseTenants.leaseId, leases.id), ilike(tenants.name, term)),
+              ),
+          ),
+        )
+      : undefined,
   );
 
   const [rows, [{ total }]] = await Promise.all([
