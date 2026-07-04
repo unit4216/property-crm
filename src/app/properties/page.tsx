@@ -6,6 +6,7 @@ import { Avatar } from "@/components/avatar";
 import { StatTile } from "@/components/stat-tile";
 import { DataTable, RowChevron, type Column } from "@/components/data-table";
 import { TableSearch } from "@/components/table-search";
+import { TableTypeFilter } from "@/components/table-type-filter";
 import { Pagination } from "@/components/pagination";
 import { PlusIcon } from "@/components/plus-icon";
 import { parseTableParams, type RawSearchParams } from "@/lib/table-params";
@@ -85,6 +86,7 @@ export default async function PropertiesPage({
     sortKeys: PROPERTY_SORT_KEYS,
     defaultSort: "created",
     defaultDir: "desc",
+    typeKeys: Object.keys(PROPERTY_TYPES),
   });
 
   // Full list drives the portfolio KPIs; the page drives the table.
@@ -137,8 +139,9 @@ export default async function PropertiesPage({
       </div>
 
       {/* Search + table */}
-      <div className="mt-6">
+      <div className="mt-6 flex flex-wrap gap-3">
         <TableSearch placeholder="Search properties…" />
+        <TableTypeFilter options={PROPERTY_TYPES} placeholder="All types" />
       </div>
       <div className="mt-3">
         <DataTable
@@ -148,8 +151,8 @@ export default async function PropertiesPage({
           dir={params.dir}
           searchParams={sp}
           empty={
-            params.q
-              ? `No properties match “${params.q}”.`
+            params.q || params.type
+              ? "No properties match your filters."
               : "No properties yet."
           }
         />

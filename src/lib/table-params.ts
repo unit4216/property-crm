@@ -13,6 +13,7 @@ export type RawSearchParams = Record<string, string | string[] | undefined>;
 
 export type TableParams = {
   q: string;
+  type: string;
   sort: string;
   dir: SortDir;
   page: number; // 1-based
@@ -34,9 +35,13 @@ export function parseTableParams(
     defaultSort: string;
     defaultDir?: SortDir;
     pageSize?: number;
+    typeKeys?: readonly string[];
   },
 ): TableParams {
   const q = (first(searchParams.q) ?? "").trim();
+
+  const rawType = first(searchParams.type);
+  const type = rawType && opts.typeKeys?.includes(rawType) ? rawType : "";
 
   const rawSort = first(searchParams.sort);
   const sort =
@@ -50,7 +55,7 @@ export function parseTableParams(
   const parsedPage = Number.parseInt(first(searchParams.page) ?? "1", 10);
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
 
-  return { q, sort, dir, page, pageSize, offset: (page - 1) * pageSize };
+  return { q, type, sort, dir, page, pageSize, offset: (page - 1) * pageSize };
 }
 
 // Builds a query string from the current params plus a patch. A `null`/`""`

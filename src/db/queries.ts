@@ -88,6 +88,7 @@ export async function getPropertiesPage(
       properties.city,
       properties.addressLine1,
     ]),
+    params.type ? eq(properties.type, params.type as Property["type"]) : undefined,
   );
 
   const [rows, [{ total }]] = await Promise.all([
