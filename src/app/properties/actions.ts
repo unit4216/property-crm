@@ -31,20 +31,24 @@ function toRow(
 }
 
 function validate(formData: FormData) {
-  const raw = Object.fromEntries(formData.entries());
-  return propertySchema.safeParse(raw);
+  const raw = Object.fromEntries(formData.entries()) as Record<
+    string,
+    string
+  >;
+  return { raw, parsed: propertySchema.safeParse(raw) };
 }
 
 export async function createProperty(
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const parsed = validate(formData);
+  const { raw, parsed } = validate(formData);
   if (!parsed.success) {
     return {
       ok: false,
       message: "Please fix the errors below.",
       fieldErrors: parsed.error.flatten().fieldErrors,
+      values: raw,
     };
   }
 
@@ -61,12 +65,13 @@ export async function updateProperty(
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const parsed = validate(formData);
+  const { raw, parsed } = validate(formData);
   if (!parsed.success) {
     return {
       ok: false,
       message: "Please fix the errors below.",
       fieldErrors: parsed.error.flatten().fieldErrors,
+      values: raw,
     };
   }
 

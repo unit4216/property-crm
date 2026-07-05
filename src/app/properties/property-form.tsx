@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 import Alert from "@mui/material/Alert";
 import Button from "@mui/material/Button";
@@ -69,9 +69,21 @@ export function PropertyForm({
 }) {
   const [state, formAction, pending] = useActionState(action, initialState);
   const errors = state.fieldErrors ?? {};
+  const values = (state.values ?? {}) as Record<string, string>;
+
+  // React resets a native form action's inputs once the action settles, on
+  // both success and failure. Remounting the fields via `key` whenever we get
+  // a fresh state restores whatever the user submitted (echoed back through
+  // `state.values`) instead of leaving them blank next to the error text.
+  const [prevState, setPrevState] = useState(state);
+  const [formKey, setFormKey] = useState(0);
+  if (state !== prevState) {
+    setPrevState(state);
+    setFormKey((k) => k + 1);
+  }
 
   return (
-    <form action={formAction}>
+    <form key={formKey} action={formAction}>
       <Stack spacing={2.5}>
         {state.message && !state.ok && (
           <Alert severity="error">{state.message}</Alert>
@@ -82,7 +94,7 @@ export function PropertyForm({
             id="name"
             name="name"
             label="Name"
-            defaultValue={property?.name ?? ""}
+            defaultValue={values.name ?? property?.name ?? ""}
             placeholder="e.g. Maple Street Duplex"
             error={!!errors.name}
             helperText={errors.name?.[0]}
@@ -95,7 +107,7 @@ export function PropertyForm({
               name="type"
               label="Type"
               select
-              defaultValue={property?.type ?? "single_family"}
+              defaultValue={values.type ?? property?.type ?? "single_family"}
               error={!!errors.type}
               helperText={errors.type?.[0]}
               fullWidth
@@ -111,7 +123,7 @@ export function PropertyForm({
               name="status"
               label="Status"
               select
-              defaultValue={property?.status ?? "active"}
+              defaultValue={values.status ?? property?.status ?? "active"}
               error={!!errors.status}
               helperText={errors.status?.[0]}
               fullWidth
@@ -130,7 +142,7 @@ export function PropertyForm({
             id="addressLine1"
             name="addressLine1"
             label="Street address"
-            defaultValue={property?.addressLine1 ?? ""}
+            defaultValue={values.addressLine1 ?? property?.addressLine1 ?? ""}
             placeholder="123 Maple St"
             error={!!errors.addressLine1}
             helperText={errors.addressLine1?.[0]}
@@ -140,7 +152,7 @@ export function PropertyForm({
             id="addressLine2"
             name="addressLine2"
             label="Unit / Apt (optional)"
-            defaultValue={property?.addressLine2 ?? ""}
+            defaultValue={values.addressLine2 ?? property?.addressLine2 ?? ""}
             placeholder="Unit 2"
             error={!!errors.addressLine2}
             helperText={errors.addressLine2?.[0]}
@@ -151,7 +163,7 @@ export function PropertyForm({
               id="city"
               name="city"
               label="City"
-              defaultValue={property?.city ?? ""}
+              defaultValue={values.city ?? property?.city ?? ""}
               error={!!errors.city}
               helperText={errors.city?.[0]}
               fullWidth
@@ -161,7 +173,7 @@ export function PropertyForm({
               id="state"
               name="state"
               label="State"
-              defaultValue={property?.state ?? ""}
+              defaultValue={values.state ?? property?.state ?? ""}
               placeholder="CA"
               error={!!errors.state}
               helperText={errors.state?.[0]}
@@ -172,7 +184,7 @@ export function PropertyForm({
               id="zip"
               name="zip"
               label="ZIP"
-              defaultValue={property?.zip ?? ""}
+              defaultValue={values.zip ?? property?.zip ?? ""}
               error={!!errors.zip}
               helperText={errors.zip?.[0]}
               fullWidth
@@ -189,7 +201,7 @@ export function PropertyForm({
               label="Beds"
               type="number"
               slotProps={{ htmlInput: { min: 0 } }}
-              defaultValue={property?.bedrooms ?? ""}
+              defaultValue={values.bedrooms ?? property?.bedrooms ?? ""}
               error={!!errors.bedrooms}
               helperText={errors.bedrooms?.[0]}
               fullWidth
@@ -200,7 +212,7 @@ export function PropertyForm({
               label="Baths"
               type="number"
               slotProps={{ htmlInput: { min: 0, step: 0.5 } }}
-              defaultValue={property?.bathrooms ?? ""}
+              defaultValue={values.bathrooms ?? property?.bathrooms ?? ""}
               error={!!errors.bathrooms}
               helperText={errors.bathrooms?.[0]}
               fullWidth
@@ -211,7 +223,7 @@ export function PropertyForm({
               label="Sq ft"
               type="number"
               slotProps={{ htmlInput: { min: 0 } }}
-              defaultValue={property?.squareFeet ?? ""}
+              defaultValue={values.squareFeet ?? property?.squareFeet ?? ""}
               error={!!errors.squareFeet}
               helperText={errors.squareFeet?.[0]}
               fullWidth
@@ -222,7 +234,7 @@ export function PropertyForm({
               label="Rent / mo"
               type="number"
               slotProps={{ htmlInput: { min: 0, step: 1 } }}
-              defaultValue={property?.rentAmount ?? ""}
+              defaultValue={values.rentAmount ?? property?.rentAmount ?? ""}
               error={!!errors.rentAmount}
               helperText={errors.rentAmount?.[0]}
               fullWidth
@@ -234,7 +246,7 @@ export function PropertyForm({
             label="Notes"
             multiline
             rows={3}
-            defaultValue={property?.notes ?? ""}
+            defaultValue={values.notes ?? property?.notes ?? ""}
             error={!!errors.notes}
             helperText={errors.notes?.[0]}
             fullWidth

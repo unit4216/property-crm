@@ -77,10 +77,14 @@ export const propertySchema = z.object({
 export type PropertyInput = z.infer<typeof propertySchema>;
 
 // Shape returned by server actions, consumed by the client form via useActionState.
+// `values` echoes back what the user submitted so the form can restore it —
+// React resets native form actions after they settle, on both success and
+// failure, which would otherwise wipe the fields right when errors appear.
 export type FormState = {
   ok: boolean;
   message?: string;
   fieldErrors?: Record<string, string[]>;
+  values?: Record<string, string | string[]>;
 };
 
 export const tenantSchema = z

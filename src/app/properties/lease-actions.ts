@@ -22,15 +22,15 @@ function toRow(input: ReturnType<typeof leaseSchema.parse>): Omit<NewLease, "pro
 // but the last checked tenant — pull tenantIds out with getAll instead.
 function validate(formData: FormData) {
   const raw = {
-    tenantIds: formData.getAll("tenantIds"),
-    status: formData.get("status"),
-    startDate: formData.get("startDate"),
-    endDate: formData.get("endDate"),
-    rentAmount: formData.get("rentAmount"),
-    depositAmount: formData.get("depositAmount"),
-    notes: formData.get("notes"),
+    tenantIds: formData.getAll("tenantIds") as string[],
+    status: formData.get("status") as string,
+    startDate: formData.get("startDate") as string,
+    endDate: formData.get("endDate") as string,
+    rentAmount: formData.get("rentAmount") as string,
+    depositAmount: formData.get("depositAmount") as string,
+    notes: formData.get("notes") as string,
   };
-  return leaseSchema.safeParse(raw);
+  return { raw, parsed: leaseSchema.safeParse(raw) };
 }
 
 export async function createLease(
@@ -38,12 +38,13 @@ export async function createLease(
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const parsed = validate(formData);
+  const { raw, parsed } = validate(formData);
   if (!parsed.success) {
     return {
       ok: false,
       message: "Please fix the errors below.",
       fieldErrors: parsed.error.flatten().fieldErrors,
+      values: raw,
     };
   }
 

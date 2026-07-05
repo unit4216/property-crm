@@ -40,6 +40,18 @@ export function LeaseForm({
 }) {
   const [state, formAction, pending] = useActionState(action, initialState);
   const errors = state.fieldErrors ?? {};
+  const values = (state.values ?? {}) as Record<string, string>;
+
+  // React resets a native form action's inputs once the action settles, on
+  // both success and failure. Remounting the fields via `key` whenever we get
+  // a fresh state restores whatever the user submitted (echoed back through
+  // `state.values`) instead of leaving them blank next to the error text.
+  const [prevState, setPrevState] = useState(state);
+  const [formKey, setFormKey] = useState(0);
+  if (state !== prevState) {
+    setPrevState(state);
+    setFormKey((k) => k + 1);
+  }
 
   const [tenantRows, setTenantRows] = useState<TenantRow[]>([
     { key: 0, tenantId: null },
@@ -67,7 +79,7 @@ export function LeaseForm({
   }
 
   return (
-    <form action={formAction}>
+    <form key={formKey} action={formAction}>
       <Stack spacing={2.5}>
         {state.message && !state.ok && (
           <Alert severity="error">{state.message}</Alert>
@@ -168,7 +180,7 @@ export function LeaseForm({
               name="status"
               label="Status"
               select
-              defaultValue="active"
+              defaultValue={values.status ?? "active"}
               error={!!errors.status}
               helperText={errors.status?.[0]}
               fullWidth
@@ -186,6 +198,7 @@ export function LeaseForm({
                 name="startDate"
                 label="Start date"
                 type="date"
+                defaultValue={values.startDate ?? ""}
                 error={!!errors.startDate}
                 helperText={errors.startDate?.[0]}
                 slotProps={{ inputLabel: { shrink: true } }}
@@ -196,6 +209,7 @@ export function LeaseForm({
                 name="endDate"
                 label="End date (optional)"
                 type="date"
+                defaultValue={values.endDate ?? ""}
                 error={!!errors.endDate}
                 helperText={errors.endDate?.[0]}
                 slotProps={{ inputLabel: { shrink: true } }}
@@ -210,6 +224,7 @@ export function LeaseForm({
                 label="Rent / mo"
                 type="number"
                 slotProps={{ htmlInput: { min: 0, step: 1 } }}
+                defaultValue={values.rentAmount ?? ""}
                 error={!!errors.rentAmount}
                 helperText={errors.rentAmount?.[0]}
                 fullWidth
@@ -220,6 +235,7 @@ export function LeaseForm({
                 label="Deposit"
                 type="number"
                 slotProps={{ htmlInput: { min: 0, step: 1 } }}
+                defaultValue={values.depositAmount ?? ""}
                 error={!!errors.depositAmount}
                 helperText={errors.depositAmount?.[0]}
                 fullWidth
@@ -232,6 +248,7 @@ export function LeaseForm({
               label="Notes (optional)"
               multiline
               rows={3}
+              defaultValue={values.notes ?? ""}
               error={!!errors.notes}
               helperText={errors.notes?.[0]}
               fullWidth
