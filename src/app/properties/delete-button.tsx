@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import Button from "@mui/material/Button";
 import Alert from "@mui/material/Alert";
 import Tooltip from "@mui/material/Tooltip";
@@ -16,6 +17,7 @@ export function DeleteButton({
   name: string;
   blocked?: boolean;
 }) {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -43,7 +45,11 @@ export function DeleteButton({
         onConfirm={() =>
           startTransition(async () => {
             const result = await deleteProperty(id);
-            if (result?.error) setError(result.error);
+            if (result?.error) {
+              setError(result.error);
+            } else {
+              router.push("/properties");
+            }
           })
         }
         trigger={(open) => (

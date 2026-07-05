@@ -120,5 +120,4 @@ export async function deleteTenant(
 
   revalidatePath("/");
   revalidatePath("/tenants");
-  redirect("/tenants");
 }

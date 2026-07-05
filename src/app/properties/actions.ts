@@ -131,5 +131,4 @@ export async function deleteProperty(
 
   revalidatePath("/");
   revalidatePath("/properties");
-  redirect("/properties");
 }
