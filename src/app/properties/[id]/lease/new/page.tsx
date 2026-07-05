@@ -4,7 +4,7 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
-import { getProperty, getTenants } from "@/db/queries";
+import { getProperty, getPropertyUnits, getTenants } from "@/db/queries";
 import { PlusIcon } from "@/components/plus-icon";
 import { createLease } from "../../../lease-actions";
 import { LeaseForm } from "../../../lease-form";
@@ -13,17 +13,22 @@ export const metadata = { title: "New lease · Property CRM" };
 
 export default async function NewLeasePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ unit?: string }>;
 }) {
   const { id } = await params;
-  const [property, tenants] = await Promise.all([
+  const { unit } = await searchParams;
+  const [property, units, tenants] = await Promise.all([
     getProperty(id),
+    getPropertyUnits(id),
     getTenants(),
   ]);
 
   if (!property) notFound();
 
+  const defaultUnitId = units.some((u) => u.id === unit) ? unit : undefined;
   const action = createLease.bind(null, property.id);
 
   return (
@@ -55,6 +60,8 @@ export default async function NewLeasePage({
         <LeaseForm
           action={action}
           tenants={tenants}
+          units={units}
+          defaultUnitId={defaultUnitId}
           cancelHref={`/properties/${property.id}`}
           successHref={`/properties/${property.id}`}
         />

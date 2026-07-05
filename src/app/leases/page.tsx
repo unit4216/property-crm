@@ -15,12 +15,17 @@ const columns: Column<LeaseWithPropertyAndTenants>[] = [
     header: "Property",
     sortable: true,
     render: (lease) => (
-      <Link
-        href={`/leases/${lease.id}`}
-        className="block truncate font-medium after:absolute after:inset-0 after:content-['']"
-      >
-        {lease.property.name}
-      </Link>
+      <div className="min-w-0">
+        <Link
+          href={`/leases/${lease.id}`}
+          className="block truncate font-medium after:absolute after:inset-0 after:content-['']"
+        >
+          {lease.property.name}
+        </Link>
+        <span className="block truncate text-xs text-ink-faint">
+          {lease.unit.label}
+        </span>
+      </div>
     ),
   },
   {

@@ -12,7 +12,7 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import type { Tenant } from "@/db/schema";
+import type { Tenant, Unit } from "@/db/schema";
 import { PlusIcon } from "@/components/plus-icon";
 import { CheckIcon } from "@/components/check-icon";
 import { successButtonSx } from "@/components/success-button-sx";
@@ -35,11 +35,15 @@ const sectionTitleSx = {
 export function LeaseForm({
   action,
   tenants,
+  units,
+  defaultUnitId,
   cancelHref,
   successHref,
 }: {
   action: Action;
   tenants: Tenant[];
+  units: Unit[];
+  defaultUnitId?: string;
   cancelHref: string;
   successHref: string;
 }) {
@@ -100,6 +104,32 @@ export function LeaseForm({
         {state.message && !state.ok && (
           <Alert severity="error">{state.message}</Alert>
         )}
+
+        <Paper component="section" variant="outlined" sx={{ p: 3 }}>
+          <Stack spacing={1.5}>
+            <Typography variant="overline" sx={sectionTitleSx}>
+              Unit
+            </Typography>
+            <TextField
+              id="unitId"
+              name="unitId"
+              label="Unit"
+              select
+              defaultValue={
+                values.unitId ?? defaultUnitId ?? units[0]?.id ?? ""
+              }
+              error={!!errors.unitId}
+              helperText={errors.unitId?.[0]}
+              fullWidth
+            >
+              {units.map((unit) => (
+                <MenuItem key={unit.id} value={unit.id}>
+                  {unit.label}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Stack>
+        </Paper>
 
         <Paper component="section" variant="outlined" sx={{ p: 3 }}>
           <Stack spacing={1.5}>

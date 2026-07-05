@@ -64,6 +64,8 @@ export default async function LeaseDetailPage({
               {lease.property.name}
             </Link>
             {" · "}
+            {lease.unit.label}
+            {" · "}
             {formatAddressLine(lease.property)} · {formatCityLine(lease.property)}
           </p>
         </div>

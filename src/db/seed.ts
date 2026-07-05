@@ -1,6 +1,12 @@
 import { db } from "./index";
 import { properties, tenants, sessions } from "./schema";
-import { seedDemoData, sampleCount, tenantCount, leaseCount } from "./seed-data";
+import {
+  seedDemoData,
+  sampleCount,
+  tenantCount,
+  unitCount,
+  leaseCount,
+} from "./seed-data";
 
 const DEV_SESSION_ID = "00000000-0000-0000-0000-000000000001";
 
@@ -21,8 +27,8 @@ async function main() {
   }
 
   console.log(
-    `Seeded ${sampleCount} properties, ${tenantCount} tenants, and ${leaseCount} leases ` +
-      `into ${allSessions.length} session(s).`,
+    `Seeded ${sampleCount} properties, ${unitCount} units, ${tenantCount} tenants, ` +
+      `and ${leaseCount} leases into ${allSessions.length} session(s).`,
   );
   process.exit(0);
 }

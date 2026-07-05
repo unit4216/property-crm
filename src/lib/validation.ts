@@ -105,6 +105,16 @@ export const tenantSchema = z
 
 export type TenantInput = z.infer<typeof tenantSchema>;
 
+// Units are edited inline on the property form as a repeatable list of labels,
+// so their rule lives here and is applied per-row in the property action rather
+// than as part of `propertySchema`.
+export const UNIT_LABEL_MAX = 120;
+export const unitLabelSchema = z
+  .string()
+  .trim()
+  .min(1, "Unit name is required")
+  .max(UNIT_LABEL_MAX);
+
 export const LEASE_STATUSES: Record<
   (typeof leaseStatusEnum.enumValues)[number],
   string
@@ -115,6 +125,7 @@ export const LEASE_STATUSES: Record<
 };
 
 export const leaseSchema = z.object({
+  unitId: z.string().uuid("Select a unit"),
   tenantIds: z.array(z.string().uuid()).min(1, "Select at least one tenant"),
   status: z.enum(leaseStatusEnum.enumValues),
   startDate: z.string().trim().min(1, "Start date is required"),

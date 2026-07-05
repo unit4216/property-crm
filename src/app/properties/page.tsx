@@ -107,7 +107,13 @@ export default async function PropertiesPage({
     0,
   );
   // Occupancy from lease coverage, matching the dashboard (not the status column).
-  const occupied = currentOccupiedCount(leases);
+  const occupied = currentOccupiedCount(
+    leases.map((l) => ({
+      propertyId: l.property.id,
+      startDate: l.startDate,
+      endDate: l.endDate,
+    })),
+  );
 
   return (
     <div>

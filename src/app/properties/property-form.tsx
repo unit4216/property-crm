@@ -1,23 +1,27 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Alert from "@mui/material/Alert";
 import Button from "@mui/material/Button";
+import FormHelperText from "@mui/material/FormHelperText";
 import MenuItem from "@mui/material/MenuItem";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import type { Property } from "@/db/schema";
+import type { Property, Unit } from "@/db/schema";
 import { successButtonSx } from "@/components/success-button-sx";
 import { CheckIcon } from "@/components/check-icon";
+import { PlusIcon } from "@/components/plus-icon";
 import {
   PROPERTY_STATUSES,
   PROPERTY_TYPES,
   type FormState,
 } from "@/lib/validation";
+
+type UnitRowState = { key: number; id: string | null; label: string };
 
 type Action = (
   prevState: FormState,
@@ -62,12 +66,14 @@ function Section({
 export function PropertyForm({
   action,
   property,
+  units,
   submitLabel,
   cancelHref,
   successHref,
 }: {
   action: Action;
   property?: Property;
+  units?: Unit[];
   submitLabel: string;
   cancelHref: string;
   successHref: string;
@@ -76,6 +82,33 @@ export function PropertyForm({
   const [state, formAction, pending] = useActionState(action, initialState);
   const errors = state.fieldErrors ?? {};
   const values = (state.values ?? {}) as Record<string, string>;
+
+  // Units are edited inline as a repeatable list. Kept in component state (not
+  // as uncontrolled inputs) so they survive the form's remount-on-error and
+  // are submitted as parallel `unitId` / `unitLabel` fields.
+  const [unitRows, setUnitRows] = useState<UnitRowState[]>(() =>
+    units && units.length > 0
+      ? units.map((u, i) => ({ key: i, id: u.id, label: u.label }))
+      : [{ key: 0, id: null, label: "" }],
+  );
+  const nextUnitKey = useRef(units && units.length > 0 ? units.length : 1);
+
+  function handleUnitLabelChange(key: number, label: string) {
+    setUnitRows((prev) =>
+      prev.map((row) => (row.key === key ? { ...row, label } : row)),
+    );
+  }
+
+  function handleAddUnitRow() {
+    setUnitRows((prev) => [
+      ...prev,
+      { key: nextUnitKey.current++, id: null, label: "" },
+    ]);
+  }
+
+  function handleRemoveUnitRow(key: number) {
+    setUnitRows((prev) => prev.filter((row) => row.key !== key));
+  }
 
   // React resets a native form action's inputs once the action settles, on
   // both success and failure. Remounting the fields via `key` whenever we get
@@ -207,6 +240,57 @@ export function PropertyForm({
               sx={{ flex: 2 }}
             />
           </Stack>
+        </Section>
+
+        <Section
+          title="Units"
+          hint="every property has at least one leasable unit"
+        >
+          <Stack spacing={1.5}>
+            {unitRows.map((row) => (
+              <Stack
+                key={row.key}
+                direction="row"
+                spacing={1}
+                sx={{ alignItems: "center" }}
+              >
+                <input type="hidden" name="unitId" value={row.id ?? ""} />
+                <TextField
+                  name="unitLabel"
+                  label="Unit name"
+                  value={row.label}
+                  onChange={(e) =>
+                    handleUnitLabelChange(row.key, e.target.value)
+                  }
+                  placeholder="e.g. Unit A"
+                  fullWidth
+                />
+                {unitRows.length > 1 && (
+                  <Button
+                    type="button"
+                    size="small"
+                    onClick={() => handleRemoveUnitRow(row.key)}
+                    aria-label="Remove unit"
+                  >
+                    Remove
+                  </Button>
+                )}
+              </Stack>
+            ))}
+            <Button
+              type="button"
+              variant="outlined"
+              size="small"
+              onClick={handleAddUnitRow}
+              sx={{ alignSelf: "flex-start" }}
+              startIcon={<PlusIcon />}
+            >
+              Add unit
+            </Button>
+          </Stack>
+          {errors.units?.[0] && (
+            <FormHelperText error>{errors.units[0]}</FormHelperText>
+          )}
         </Section>
 
         <Section title="Specs & rent" hint="(optional)">

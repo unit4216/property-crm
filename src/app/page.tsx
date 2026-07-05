@@ -140,7 +140,12 @@ export default async function DashboardPage() {
   // Occupancy rate trend over the last 12 months. The current occupancy tile is
   // the latest point on the trend, so both use the same lease-coverage
   // definition and always agree.
-  const occupancyTrend = monthlyOccupancy(properties.length, leases);
+  const occupancyLeases = leases.map((l) => ({
+    propertyId: l.property.id,
+    startDate: l.startDate,
+    endDate: l.endDate,
+  }));
+  const occupancyTrend = monthlyOccupancy(properties.length, occupancyLeases);
   const occupancyRate = occupancyTrend.at(-1)?.rate ?? 0;
 
   // Properties by type. Uses a shorter label than PROPERTY_TYPES for the

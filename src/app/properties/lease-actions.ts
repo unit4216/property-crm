@@ -1,12 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { leases, leaseTenants, type NewLease } from "@/db/schema";
+import { leases, leaseTenants, units, type NewLease } from "@/db/schema";
 import { leaseSchema, type FormState } from "@/lib/validation";
 
-function toRow(input: ReturnType<typeof leaseSchema.parse>): Omit<NewLease, "propertyId"> {
+function toRow(
+  input: ReturnType<typeof leaseSchema.parse>,
+): Omit<NewLease, "unitId"> {
   return {
     status: input.status,
     startDate: input.startDate,
@@ -21,6 +23,7 @@ function toRow(input: ReturnType<typeof leaseSchema.parse>): Omit<NewLease, "pro
 // but the last checked tenant — pull tenantIds out with getAll instead.
 function validate(formData: FormData) {
   const raw = {
+    unitId: formData.get("unitId") as string,
     tenantIds: formData.getAll("tenantIds") as string[],
     status: formData.get("status") as string,
     startDate: formData.get("startDate") as string,
@@ -47,10 +50,26 @@ export async function createLease(
     };
   }
 
+  // Guard that the chosen unit actually belongs to this property, so a lease
+  // can't be pinned to a unit from someone else's property via a forged id.
+  const unit = await db
+    .select({ id: units.id })
+    .from(units)
+    .where(and(eq(units.id, parsed.data.unitId), eq(units.propertyId, propertyId)))
+    .limit(1);
+  if (unit.length === 0) {
+    return {
+      ok: false,
+      message: "Please fix the errors below.",
+      fieldErrors: { unitId: ["Select a unit on this property"] },
+      values: raw,
+    };
+  }
+
   try {
     const [lease] = await db
       .insert(leases)
-      .values({ propertyId, ...toRow(parsed.data) })
+      .values({ unitId: parsed.data.unitId, ...toRow(parsed.data) })
       .returning();
 
     await db
