@@ -50,8 +50,12 @@ export function DeleteButton({
             if ("error" in result) {
               setError(result.error);
             } else {
+              // Navigate away immediately: this button lives on the property's
+              // detail page, and the server action triggers a re-render of the
+              // current route. Delaying the push would flash the "not found"
+              // screen while the now-deleted record re-renders.
               setDeleted(true);
-              setTimeout(() => router.push("/properties"), 700);
+              router.push("/properties");
             }
           })
         }
