@@ -102,7 +102,6 @@ export default async function PropertyDetailPage({
     if (current) currentLeaseIds.add(current.id);
   }
 
-  const pastLeases = leases.filter((l) => !currentLeaseIds.has(l.id));
   const hasActiveLease = leases.some((l) => l.status === "active");
 
   return (
@@ -260,46 +259,6 @@ export default async function PropertyDetailPage({
           </Table>
         </Stack>
       </section>
-
-      {pastLeases.length > 0 && (
-        <section className="mt-6">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
-            Lease history
-          </h2>
-          <Stack sx={{ mt: 1, bgcolor: "var(--surface)" }}>
-            <Table>
-              <TableBody>
-                {pastLeases.map((lease) => (
-                  <TableRow key={lease.id}>
-                    <TableCell sx={{ px: 0 }}>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">
-                          {lease.tenants.map((t) => t.name).join(", ")}
-                        </p>
-                        <p className="mt-0.5 text-xs text-ink-faint">
-                          {lease.unit.label} ·{" "}
-                          {formatDate(new Date(lease.startDate))} –{" "}
-                          {lease.endDate
-                            ? formatDate(new Date(lease.endDate))
-                            : "present"}
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell align="right" sx={{ px: 0 }}>
-                      <div className="flex items-center justify-end gap-3">
-                        <span className="text-sm tabular-nums text-ink-muted">
-                          {formatMoney(lease.rentAmount)}
-                        </span>
-                        <LeaseStatusBadge status={lease.status} />
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Stack>
-        </section>
-      )}
 
       {property.notes && (
         <Paper component="section" variant="outlined" sx={{ mt: 3, p: 3 }}>
