@@ -14,6 +14,7 @@ export type RawSearchParams = Record<string, string | string[] | undefined>;
 export type TableParams = {
   q: string;
   type: string;
+  status: string;
   sort: string;
   dir: SortDir;
   page: number; // 1-based
@@ -36,12 +37,22 @@ export function parseTableParams(
     defaultDir?: SortDir;
     pageSize?: number;
     typeKeys?: readonly string[];
+    statusKeys?: readonly string[];
+    defaultStatus?: string;
   },
 ): TableParams {
   const q = (first(searchParams.q) ?? "").trim();
 
   const rawType = first(searchParams.type);
   const type = rawType && opts.typeKeys?.includes(rawType) ? rawType : "";
+
+  // Whitelisted against the caller's known values, falling back to the caller's
+  // default (e.g. "active") rather than "all" when the param is absent/invalid.
+  const rawStatus = first(searchParams.status);
+  const status =
+    rawStatus && opts.statusKeys?.includes(rawStatus)
+      ? rawStatus
+      : (opts.defaultStatus ?? "");
 
   const rawSort = first(searchParams.sort);
   const sort =
@@ -55,7 +66,16 @@ export function parseTableParams(
   const parsedPage = Number.parseInt(first(searchParams.page) ?? "1", 10);
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
 
-  return { q, type, sort, dir, page, pageSize, offset: (page - 1) * pageSize };
+  return {
+    q,
+    type,
+    status,
+    sort,
+    dir,
+    page,
+    pageSize,
+    offset: (page - 1) * pageSize,
+  };
 }
 
 // Builds a query string from the current params plus a patch. A `null`/`""`

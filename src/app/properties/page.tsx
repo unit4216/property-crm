@@ -13,15 +13,26 @@ import { StatTile } from "@/components/stat-tile";
 import { DataTable, RowChevron, type Column } from "@/components/data-table";
 import { TableSearch } from "@/components/table-search";
 import { TableTypeFilter } from "@/components/table-type-filter";
+import { TableStatusFilter } from "@/components/table-status-filter";
 import { Pagination } from "@/components/pagination";
 import { PlusIcon } from "@/components/plus-icon";
 import { currentOccupiedCount } from "@/lib/occupancy";
 import { parseTableParams, type RawSearchParams } from "@/lib/table-params";
-import { PROPERTY_TYPES } from "@/lib/validation";
+import { PROPERTY_TYPES, PROPERTY_STATUSES } from "@/lib/validation";
 import { formatCityLine, formatMoney } from "@/lib/format";
 
 // searchParams (q/sort/dir/page) makes this a request-time, dynamic render.
 export const dynamic = "force-dynamic";
+
+// Status toggle: defaults to "active" so sold properties are hidden until the
+// user opts into "Sold" or "All". "all" is a filter sentinel, not a real status.
+const STATUS_DEFAULT = "active";
+const STATUS_OPTIONS = [
+  { value: "active", label: PROPERTY_STATUSES.active },
+  { value: "sold", label: PROPERTY_STATUSES.sold },
+  { value: "all", label: "All" },
+];
+const STATUS_KEYS = STATUS_OPTIONS.map((o) => o.value);
 
 const columns: Column<PropertyWithRent>[] = [
   {
@@ -92,6 +103,8 @@ export default async function PropertiesPage({
     defaultSort: "created",
     defaultDir: "desc",
     typeKeys: Object.keys(PROPERTY_TYPES),
+    statusKeys: STATUS_KEYS,
+    defaultStatus: STATUS_DEFAULT,
   });
 
   // Full list drives the portfolio KPIs; the page drives the table.
@@ -150,6 +163,12 @@ export default async function PropertiesPage({
       <div className="mt-6 flex flex-wrap gap-3">
         <TableSearch placeholder="Search properties…" />
         <TableTypeFilter options={PROPERTY_TYPES} placeholder="All types" />
+        <div className="sm:ml-auto">
+          <TableStatusFilter
+            options={STATUS_OPTIONS}
+            defaultValue={STATUS_DEFAULT}
+          />
+        </div>
       </div>
       <div className="mt-3">
         <DataTable
@@ -159,9 +178,9 @@ export default async function PropertiesPage({
           dir={params.dir}
           searchParams={sp}
           empty={
-            params.q || params.type
-              ? "No properties match your filters."
-              : "No properties yet."
+            all.length === 0
+              ? "No properties yet."
+              : "No properties match your filters."
           }
         />
         <Pagination

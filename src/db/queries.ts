@@ -171,6 +171,11 @@ export async function getPropertiesPage(
       properties.addressLine1,
     ]),
     params.type ? eq(properties.type, params.type as Property["type"]) : undefined,
+    // "all" (or any non-status value) leaves the portfolio unfiltered; a real
+    // status narrows to just active or sold.
+    params.status === "active" || params.status === "sold"
+      ? eq(properties.status, params.status)
+      : undefined,
   );
 
   const [rows, [{ total }]] = await Promise.all([
