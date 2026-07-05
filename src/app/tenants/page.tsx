@@ -6,6 +6,7 @@ import { DataTable, RowChevron, type Column } from "@/components/data-table";
 import { TableSearch } from "@/components/table-search";
 import { Pagination } from "@/components/pagination";
 import { PlusIcon } from "@/components/plus-icon";
+import { SuccessBanner } from "@/components/success-banner";
 import { parseTableParams, type RawSearchParams } from "@/lib/table-params";
 import type { Tenant } from "@/db/schema";
 
@@ -68,6 +69,8 @@ export default async function TenantsPage({
 
   return (
     <div>
+      <SuccessBanner />
+
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-ink-muted">Portfolio</p>

@@ -14,6 +14,7 @@ import { TableSearch } from "@/components/table-search";
 import { TableTypeFilter } from "@/components/table-type-filter";
 import { Pagination } from "@/components/pagination";
 import { PlusIcon } from "@/components/plus-icon";
+import { SuccessBanner } from "@/components/success-banner";
 import { currentOccupiedCount } from "@/lib/occupancy";
 import { parseTableParams, type RawSearchParams } from "@/lib/table-params";
 import { PROPERTY_TYPES } from "@/lib/validation";
@@ -111,6 +112,8 @@ export default async function PropertiesPage({
 
   return (
     <div>
+      <SuccessBanner />
+
       {/* Page header */}
       <div className="flex items-start justify-between gap-4">
         <div>

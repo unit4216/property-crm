@@ -60,7 +60,9 @@ export async function createLease(
   revalidatePath("/");
   revalidatePath(`/properties/${propertyId}`);
   revalidatePath("/leases");
-  redirect(`/properties/${propertyId}`);
+  redirect(
+    `/properties/${propertyId}?success=${encodeURIComponent("Lease started.")}`,
+  );
 }
 
 export async function endLease(id: string, propertyId: string): Promise<void> {

@@ -46,7 +46,7 @@ export async function createTenant(
 
   revalidatePath("/");
   revalidatePath("/tenants");
-  redirect("/tenants");
+  redirect(`/tenants?success=${encodeURIComponent("Tenant created.")}`);
 }
 
 export async function updateTenant(
@@ -72,7 +72,7 @@ export async function updateTenant(
 
   revalidatePath("/tenants");
   revalidatePath(`/tenants/${id}`);
-  redirect(`/tenants/${id}`);
+  redirect(`/tenants/${id}?success=${encodeURIComponent("Tenant updated.")}`);
 }
 
 export async function deleteTenant(
@@ -99,5 +99,5 @@ export async function deleteTenant(
     .where(and(eq(tenants.id, id), eq(tenants.sessionId, sessionId)));
   revalidatePath("/");
   revalidatePath("/tenants");
-  redirect("/tenants");
+  redirect(`/tenants?success=${encodeURIComponent("Tenant deleted.")}`);
 }

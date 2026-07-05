@@ -11,6 +11,7 @@ import Typography from "@mui/material/Typography";
 import { getProperty, getPropertyLeases } from "@/db/queries";
 import { StatusBadge, LeaseStatusBadge } from "@/components/badge";
 import { Avatar } from "@/components/avatar";
+import { SuccessBanner } from "@/components/success-banner";
 import { PROPERTY_TYPES } from "@/lib/validation";
 import {
   formatAddressLine,
@@ -81,6 +82,8 @@ export default async function PropertyDetailPage({
 
   return (
     <div>
+      <SuccessBanner />
+
       <Link href="/properties" className="text-sm text-ink-muted hover:text-ink">
         ← Back to properties
       </Link>

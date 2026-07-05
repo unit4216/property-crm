@@ -57,7 +57,7 @@ export async function createProperty(
 
   revalidatePath("/");
   revalidatePath("/properties");
-  redirect("/properties");
+  redirect(`/properties?success=${encodeURIComponent("Property created.")}`);
 }
 
 export async function updateProperty(
@@ -84,7 +84,9 @@ export async function updateProperty(
   revalidatePath("/");
   revalidatePath("/properties");
   revalidatePath(`/properties/${id}`);
-  redirect(`/properties/${id}`);
+  redirect(
+    `/properties/${id}?success=${encodeURIComponent("Property updated.")}`,
+  );
 }
 
 export async function deleteProperty(
@@ -110,5 +112,5 @@ export async function deleteProperty(
     .where(and(eq(properties.id, id), eq(properties.sessionId, sessionId)));
   revalidatePath("/");
   revalidatePath("/properties");
-  redirect("/properties");
+  redirect(`/properties?success=${encodeURIComponent("Property deleted.")}`);
 }

@@ -10,6 +10,7 @@ import TableRow from "@mui/material/TableRow";
 import { getTenant, getTenantLeases } from "@/db/queries";
 import { LeaseStatusBadge } from "@/components/badge";
 import { Avatar } from "@/components/avatar";
+import { SuccessBanner } from "@/components/success-banner";
 import { formatCityLine, formatDate, formatMoney } from "@/lib/format";
 import { DeleteTenantButton } from "../delete-button";
 
@@ -32,6 +33,8 @@ export default async function TenantDetailPage({
 
   return (
     <div>
+      <SuccessBanner />
+
       <Link href="/tenants" className="text-sm text-ink-muted hover:text-ink">
         ← Back to tenants
       </Link>
