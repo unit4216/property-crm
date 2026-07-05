@@ -165,7 +165,7 @@ export function UniversalSearch() {
                       <button
                         type="button"
                         onClick={() => onSelect(row.href)}
-                        className="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left hover:bg-[var(--surface-muted)]"
+                        className="flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-2.5 text-left hover:bg-[var(--surface-muted)]"
                       >
                         <div className="min-w-0">
                           <p className="truncate text-sm font-medium">{row.primary}</p>
