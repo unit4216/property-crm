@@ -56,7 +56,6 @@ export const properties = pgTable("properties", {
   bedrooms: integer("bedrooms"),
   bathrooms: numeric("bathrooms", { precision: 3, scale: 1 }),
   squareFeet: integer("square_feet"),
-  rentAmount: numeric("rent_amount", { precision: 12, scale: 2 }),
 
   notes: text("notes"),
 

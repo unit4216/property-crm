@@ -135,7 +135,6 @@ export const propertySchema = z.object({
   bedrooms: optionalInt,
   bathrooms: optionalDecimal,
   squareFeet: optionalInt,
-  rentAmount: optionalDecimal,
 
   notes: optionalText,
 });

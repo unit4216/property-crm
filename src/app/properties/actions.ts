@@ -61,7 +61,6 @@ function toRow(
     bedrooms: input.bedrooms ?? null,
     bathrooms: input.bathrooms?.toString() ?? null,
     squareFeet: input.squareFeet ?? null,
-    rentAmount: input.rentAmount?.toString() ?? null,
     notes: input.notes ?? null,
   };
 }

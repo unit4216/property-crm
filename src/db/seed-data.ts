@@ -31,7 +31,6 @@ const sampleProperties: PropertySeed[] = [
     bedrooms: 4,
     bathrooms: "3.0",
     squareFeet: 2200,
-    rentAmount: "2850.00",
     notes: "Both units leased through end of year.",
   },
   {
@@ -47,7 +46,6 @@ const sampleProperties: PropertySeed[] = [
     bedrooms: 1,
     bathrooms: "1.0",
     squareFeet: 850,
-    rentAmount: "1950.00",
     notes: "Turnover cleaning scheduled.",
   },
   {
@@ -62,7 +60,6 @@ const sampleProperties: PropertySeed[] = [
     bedrooms: 3,
     bathrooms: "2.5",
     squareFeet: 1875,
-    rentAmount: "2400.00",
   },
   {
     key: "cedar",
@@ -77,7 +74,6 @@ const sampleProperties: PropertySeed[] = [
     bedrooms: 3,
     bathrooms: "2.5",
     squareFeet: 1650,
-    rentAmount: "2250.00",
     notes: "HOA covers landscaping and trash.",
   },
   {
@@ -93,7 +89,6 @@ const sampleProperties: PropertySeed[] = [
     bedrooms: 2,
     bathrooms: "1.0",
     squareFeet: 980,
-    rentAmount: "1750.00",
   },
   {
     key: "oakhill",
@@ -107,7 +102,6 @@ const sampleProperties: PropertySeed[] = [
     bedrooms: 2,
     bathrooms: "2.0",
     squareFeet: 1420,
-    rentAmount: "2100.00",
     notes: "Long-term tenant, renews annually.",
   },
   {
@@ -120,7 +114,6 @@ const sampleProperties: PropertySeed[] = [
     state: "TX",
     zip: "78666",
     squareFeet: 3200,
-    rentAmount: "4800.00",
     notes: "Ground-floor retail, triple-net lease.",
   },
   {
@@ -146,7 +139,6 @@ const sampleProperties: PropertySeed[] = [
     bedrooms: 8,
     bathrooms: "4.0",
     squareFeet: 3600,
-    rentAmount: "5200.00",
     notes: "Unit C undergoing plumbing repairs.",
   },
 ];
