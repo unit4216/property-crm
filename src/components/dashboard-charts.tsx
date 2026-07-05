@@ -83,9 +83,9 @@ function EmptyChart({ message }: { message: string }) {
   );
 }
 
-export function PropertyStatusChart({ data }: { data: PieDatum[] }) {
+export function PropertyOccupancyChart({ data }: { data: PieDatum[] }) {
   return (
-    <ChartCard title="Properties by status">
+    <ChartCard title="Properties by occupancy">
       {data.length === 0 ? (
         <EmptyChart message="No properties yet." />
       ) : (

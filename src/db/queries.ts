@@ -3,6 +3,7 @@ import {
   and,
   asc,
   count,
+  countDistinct,
   desc,
   eq,
   exists,
@@ -88,6 +89,33 @@ export async function getPropertyUnits(propertyId: string): Promise<Unit[]> {
     .from(units)
     .where(eq(units.propertyId, propertyId))
     .orderBy(asc(units.label));
+}
+
+// Per-property occupancy, unit-weighted: how many of a property's units have an
+// active lease covering today, out of its total units. Occupancy is derived
+// from lease coverage (via leaseIsActive), never the `status` column, matching
+// lib/occupancy.ts. Unlike the portfolio-wide monthlyOccupancy trend, this is
+// per property and unit-weighted, so a half-leased duplex reads as partial.
+export type PropertyOccupancy = {
+  propertyId: string;
+  totalUnits: number;
+  occupiedUnits: number;
+};
+
+export async function getPropertyOccupancy(): Promise<PropertyOccupancy[]> {
+  const sessionId = await getSessionId();
+  return db
+    .select({
+      propertyId: units.propertyId,
+      totalUnits: countDistinct(units.id),
+      // leases only join when active, so a non-null unitId marks an occupied unit.
+      occupiedUnits: countDistinct(leases.unitId),
+    })
+    .from(units)
+    .innerJoin(properties, eq(units.propertyId, properties.id))
+    .leftJoin(leases, and(eq(leases.unitId, units.id), leaseIsActive))
+    .where(eq(properties.sessionId, sessionId))
+    .groupBy(units.propertyId);
 }
 
 export const PROPERTY_SORT_KEYS = [

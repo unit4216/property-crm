@@ -1,17 +1,22 @@
 import Link from "next/link";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
-import { getProperties, getTenants, getAllLeases } from "@/db/queries";
+import {
+  getProperties,
+  getTenants,
+  getAllLeases,
+  getPropertyOccupancy,
+} from "@/db/queries";
 import { StatTile } from "@/components/stat-tile";
 import { UniversalSearch } from "@/components/universal-search";
 import {
-  PropertyStatusChart,
+  PropertyOccupancyChart,
   OccupancyTrendChart,
   PropertyTypeChart,
 } from "@/components/dashboard-charts";
 import type { Property } from "@/db/schema";
 import { monthlyOccupancy } from "@/lib/occupancy";
-import { PROPERTY_TYPES, PROPERTY_STATUSES } from "@/lib/validation";
+import { PROPERTY_TYPES } from "@/lib/validation";
 import { formatCityLine, formatDate, formatMoney } from "@/lib/format";
 
 // Always render fresh from the database.
@@ -22,13 +27,13 @@ const LEASE_EXPIRY_WINDOW_DAYS = 30;
 // A bright, high-chroma categorical palette in the family of the lime accent
 // (--accent, #cbf74f) — evenly spaced hues at similar lightness so the charts
 // feel branded rather than stock. Assigned in enum order for a stable mapping.
-const PROPERTY_STATUS_COLORS: Record<Property["status"], string> = {
-  active: "#cbf74f", // lime (accent)
-  occupied: "#5cb8ff", // sky blue
-  vacant: "#ffc24f", // amber
-  under_maintenance: "#ff8f6b", // coral
-  listed: "#b88cff", // violet
-};
+// Occupancy bands, brightest for the healthiest state: lime for fully leased,
+// amber for partial, coral for vacant (the state that needs attention).
+const OCCUPANCY_BAND_COLORS = {
+  full: "#cbf74f", // lime (accent)
+  partial: "#ffc24f", // amber
+  vacant: "#ff8f6b", // coral
+} as const;
 
 function daysFromNow(days: number) {
   const d = new Date();
@@ -129,10 +134,11 @@ function ListCard({
 }
 
 export default async function DashboardPage() {
-  const [properties, tenants, leases] = await Promise.all([
+  const [properties, tenants, leases, propertyOccupancy] = await Promise.all([
     getProperties(),
     getTenants(),
     getAllLeases(),
+    getPropertyOccupancy(),
   ]);
 
   // Stat tiles. Rent roll is realized income — the sum of every active lease's
@@ -164,15 +170,23 @@ export default async function DashboardPage() {
     }))
     .filter((d) => d.count > 0);
 
-  // Properties by status
-  const propertyStatusData = (
-    Object.keys(PROPERTY_STATUSES) as Property["status"][]
-  )
-    .map((status) => ({
-      id: status,
-      value: properties.filter((p) => p.status === status).length,
-      label: PROPERTY_STATUSES[status],
-      color: PROPERTY_STATUS_COLORS[status],
+  // Properties by occupancy: bucket each property by the share of its units
+  // with an active lease — vacant (none), partial (some), or fully occupied
+  // (all). Unit-weighted, so a half-leased duplex lands in "partial".
+  const occupancyBands = { full: 0, partial: 0, vacant: 0 };
+  for (const p of propertyOccupancy) {
+    if (p.occupiedUnits === 0) occupancyBands.vacant += 1;
+    else if (p.occupiedUnits >= p.totalUnits) occupancyBands.full += 1;
+    else occupancyBands.partial += 1;
+  }
+  const propertyOccupancyData = [
+    { id: "full", value: occupancyBands.full, label: "Fully occupied" },
+    { id: "partial", value: occupancyBands.partial, label: "Partially occupied" },
+    { id: "vacant", value: occupancyBands.vacant, label: "Vacant" },
+  ]
+    .map((d) => ({
+      ...d,
+      color: OCCUPANCY_BAND_COLORS[d.id as keyof typeof OCCUPANCY_BAND_COLORS],
     }))
     .filter((d) => d.value > 0);
 
@@ -234,7 +248,7 @@ export default async function DashboardPage() {
 
       {/* Charts */}
       <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <PropertyStatusChart data={propertyStatusData} />
+        <PropertyOccupancyChart data={propertyOccupancyData} />
         <PropertyTypeChart dataset={propertyTypeDataset} />
       </div>
 

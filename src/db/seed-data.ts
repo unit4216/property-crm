@@ -139,7 +139,21 @@ const sampleProperties: PropertySeed[] = [
     bedrooms: 8,
     bathrooms: "4.0",
     squareFeet: 3600,
-    notes: "Unit C undergoing plumbing repairs.",
+    notes: "Units A and B leased; C undergoing plumbing repairs, D turning over.",
+  },
+  {
+    key: "clarksville",
+    name: "Clarksville Duplex",
+    type: "multi_family",
+    status: "occupied",
+    addressLine1: "1607 W 10th St",
+    city: "Austin",
+    state: "TX",
+    zip: "78703",
+    bedrooms: 4,
+    bathrooms: "2.0",
+    squareFeet: 1980,
+    notes: "Unit A leased; Unit B being repainted before listing.",
   },
 ];
 
@@ -194,6 +208,24 @@ const sampleTenants: TenantSeed[] = [
     email: "hannah.thompson@example.com",
     phone: "(512) 555-0155",
   },
+  {
+    key: "garcia",
+    name: "Sofia Garcia",
+    email: "sofia.garcia@example.com",
+    phone: "(512) 555-0211",
+  },
+  {
+    key: "kim",
+    name: "Daniel Kim",
+    email: "daniel.kim@example.com",
+    phone: "(737) 555-0233",
+  },
+  {
+    key: "wright",
+    name: "Olivia Wright",
+    email: "olivia.wright@example.com",
+    phone: "(512) 555-0248",
+  },
 ];
 
 // Every property has at least one unit. Multi-family buildings are split into
@@ -212,6 +244,8 @@ const sampleUnits: UnitSeed[] = [
   { key: "pecan-b", propertyKey: "pecan", label: "Unit B" },
   { key: "pecan-c", propertyKey: "pecan", label: "Unit C" },
   { key: "pecan-d", propertyKey: "pecan", label: "Unit D" },
+  { key: "clarksville-a", propertyKey: "clarksville", label: "Unit A" },
+  { key: "clarksville-b", propertyKey: "clarksville", label: "Unit B" },
 ];
 
 const sampleLeases: LeaseSeed[] = [
@@ -282,6 +316,33 @@ const sampleLeases: LeaseSeed[] = [
     rentAmount: "1950.00",
     depositAmount: "1950.00",
     notes: "Move-in after turnover cleaning.",
+  },
+  {
+    // Two of the fourplex's four units are leased, so it reads as partially
+    // occupied (C is under repair, D is turning over).
+    unitKey: "pecan-a",
+    tenantKeys: ["garcia"],
+    startDate: "2026-04-01",
+    endDate: "2027-03-31",
+    rentAmount: "1500.00",
+    depositAmount: "1500.00",
+  },
+  {
+    unitKey: "pecan-b",
+    tenantKeys: ["kim"],
+    startDate: "2026-06-01",
+    endDate: "2027-05-31",
+    rentAmount: "1500.00",
+    depositAmount: "1500.00",
+  },
+  {
+    // One of the duplex's two units is leased — partially occupied.
+    unitKey: "clarksville-a",
+    tenantKeys: ["wright"],
+    startDate: "2026-02-15",
+    endDate: "2027-02-14",
+    rentAmount: "1800.00",
+    depositAmount: "1800.00",
   },
 ];
 
