@@ -7,6 +7,7 @@ import InputAdornment from "@mui/material/InputAdornment";
 import Paper from "@mui/material/Paper";
 import { searchAction } from "@/app/search-actions";
 import type { UniversalSearchResults } from "@/db/queries";
+import { formatDate } from "@/lib/format";
 
 function SearchIcon() {
   return (
@@ -26,7 +27,7 @@ function SearchIcon() {
   );
 }
 
-const EMPTY_RESULTS: UniversalSearchResults = { properties: [], tenants: [] };
+const EMPTY_RESULTS: UniversalSearchResults = { properties: [], tenants: [], leases: [] };
 
 type Row = { href: string; primary: string; secondary: string };
 
@@ -46,6 +47,16 @@ function toRows(results: UniversalSearchResults): { title: string; rows: Row[] }
         href: `/tenants/${t.id}`,
         primary: t.name,
         secondary: t.email || t.phone || "No contact info",
+      })),
+    },
+    {
+      // Leases have no page of their own — they open on the property page,
+      // same as every lease link elsewhere in the app.
+      title: "Leases",
+      rows: results.leases.map((l) => ({
+        href: `/properties/${l.property.id}`,
+        primary: l.property.name,
+        secondary: `${l.tenants.map((t) => t.name).join(", ") || "No tenants"} · ${formatDate(new Date(l.startDate))}–${l.endDate ? formatDate(new Date(l.endDate)) : "present"}`,
       })),
     },
   ];

@@ -272,17 +272,19 @@ export async function getLeasesPage(
 export type UniversalSearchResults = {
   properties: Property[];
   tenants: Tenant[];
+  leases: LeaseWithPropertyAndTenants[];
 };
 
 const UNIVERSAL_SEARCH_LIMIT = 5;
 
-// Top few matches across properties and tenants, for the dashboard's
+// Top few matches across properties, tenants, and leases, for the dashboard's
 // universal search. Scoped to the current session like every other query.
 export async function universalSearch(q: string): Promise<UniversalSearchResults> {
-  if (!q.trim()) return { properties: [], tenants: [] };
+  if (!q.trim()) return { properties: [], tenants: [], leases: [] };
   const sessionId = await getSessionId();
+  const term = `%${q}%`;
 
-  const [matchedProperties, matchedTenants] = await Promise.all([
+  const [matchedProperties, matchedTenants, leaseRows] = await Promise.all([
     db
       .select()
       .from(properties)
@@ -305,9 +307,40 @@ export async function universalSearch(q: string): Promise<UniversalSearchResults
       )
       .orderBy(tenants.name)
       .limit(UNIVERSAL_SEARCH_LIMIT),
+    // A lease matches by its property's name or by any of its tenants' names,
+    // same as the leases page search.
+    db
+      .select({ lease: leases, property: properties })
+      .from(leases)
+      .innerJoin(properties, eq(leases.propertyId, properties.id))
+      .where(
+        and(
+          eq(properties.sessionId, sessionId),
+          or(
+            ilike(properties.name, term),
+            exists(
+              db
+                .select({ one: sql`1` })
+                .from(leaseTenants)
+                .innerJoin(tenants, eq(leaseTenants.tenantId, tenants.id))
+                .where(
+                  and(eq(leaseTenants.leaseId, leases.id), ilike(tenants.name, term)),
+                ),
+            ),
+          ),
+        ),
+      )
+      .orderBy(desc(leases.startDate))
+      .limit(UNIVERSAL_SEARCH_LIMIT),
   ]);
 
-  return { properties: matchedProperties, tenants: matchedTenants };
+  const withTenants = await attachTenants(leaseRows.map((r) => r.lease));
+  const matchedLeases = withTenants.map((lease, i) => ({
+    ...lease,
+    property: leaseRows[i].property,
+  }));
+
+  return { properties: matchedProperties, tenants: matchedTenants, leases: matchedLeases };
 }
 
 export async function getTenantLeases(
