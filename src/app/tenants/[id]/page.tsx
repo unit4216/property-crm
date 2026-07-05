@@ -97,6 +97,7 @@ export default async function TenantDetailPage({
                           {formatCityLine(lease.property)}
                         </p>
                         <p className="mt-1 text-xs text-ink-faint">
+                          {lease.unit.label} ·{" "}
                           {formatDate(new Date(lease.startDate))} –{" "}
                           {lease.endDate
                             ? formatDate(new Date(lease.endDate))

@@ -92,6 +92,27 @@ export const tenants = pgTable("tenants", {
 export type Tenant = typeof tenants.$inferSelect;
 export type NewTenant = typeof tenants.$inferInsert;
 
+// A property is made up of one or more leasable units (e.g. the two halves of a
+// duplex, or the single unit of a house). Every property has at least one, and
+// a lease is always signed against a specific unit rather than the property.
+export const units = pgTable("units", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  propertyId: uuid("property_id")
+    .notNull()
+    .references(() => properties.id, { onDelete: "cascade" }),
+  label: text("label").notNull(),
+
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export type Unit = typeof units.$inferSelect;
+export type NewUnit = typeof units.$inferInsert;
+
 export const leaseStatusEnum = pgEnum("lease_status", [
   "upcoming",
   "active",
@@ -100,9 +121,9 @@ export const leaseStatusEnum = pgEnum("lease_status", [
 
 export const leases = pgTable("leases", {
   id: uuid("id").primaryKey().defaultRandom(),
-  propertyId: uuid("property_id")
+  unitId: uuid("unit_id")
     .notNull()
-    .references(() => properties.id, { onDelete: "cascade" }),
+    .references(() => units.id, { onDelete: "cascade" }),
   status: leaseStatusEnum("status").notNull().default("active"),
 
   startDate: date("start_date", { mode: "string" }).notNull(),

@@ -18,10 +18,12 @@ import { getSessionId } from "@/lib/session";
 import {
   properties,
   tenants,
+  units,
   leases,
   leaseTenants,
   type Property,
   type Tenant,
+  type Unit,
   type Lease,
 } from "@/db/schema";
 import type { TableParams } from "@/lib/table-params";
@@ -64,6 +66,16 @@ export async function getProperty(id: string): Promise<Property | null> {
     .where(and(eq(properties.id, id), eq(properties.sessionId, sessionId)))
     .limit(1);
   return rows[0] ?? null;
+}
+
+// Every property has at least one unit; ordered by label so the property page
+// and the lease form's unit picker list them consistently.
+export async function getPropertyUnits(propertyId: string): Promise<Unit[]> {
+  return db
+    .select()
+    .from(units)
+    .where(eq(units.propertyId, propertyId))
+    .orderBy(asc(units.label));
 }
 
 const PROPERTY_SORT_COLUMNS: Record<string, PgColumn> = {
@@ -180,18 +192,26 @@ async function attachTenants(leaseRows: Lease[]): Promise<LeaseWithTenants[]> {
   return leaseRows.map((l) => ({ ...l, tenants: byLease.get(l.id) ?? [] }));
 }
 
+export type LeaseWithUnitAndTenants = LeaseWithTenants & { unit: Unit };
+
+// Leases for a property, resolved through its units. Each lease carries the
+// specific unit it was signed against so the property page can group them.
 export async function getPropertyLeases(
   propertyId: string,
-): Promise<LeaseWithTenants[]> {
+): Promise<LeaseWithUnitAndTenants[]> {
   const rows = await db
-    .select()
+    .select({ lease: leases, unit: units })
     .from(leases)
-    .where(eq(leases.propertyId, propertyId))
+    .innerJoin(units, eq(leases.unitId, units.id))
+    .where(eq(units.propertyId, propertyId))
     .orderBy(desc(leases.startDate));
-  return attachTenants(rows);
+
+  const withTenants = await attachTenants(rows.map((r) => r.lease));
+  return withTenants.map((lease, i) => ({ ...lease, unit: rows[i].unit }));
 }
 
 export type LeaseWithPropertyAndTenants = Lease & {
+  unit: Unit;
   property: Property;
   tenants: Tenant[];
 };
@@ -199,29 +219,35 @@ export type LeaseWithPropertyAndTenants = Lease & {
 export async function getLease(id: string): Promise<LeaseWithPropertyAndTenants | null> {
   const sessionId = await getSessionId();
   const rows = await db
-    .select({ lease: leases, property: properties })
+    .select({ lease: leases, unit: units, property: properties })
     .from(leases)
-    .innerJoin(properties, eq(leases.propertyId, properties.id))
+    .innerJoin(units, eq(leases.unitId, units.id))
+    .innerJoin(properties, eq(units.propertyId, properties.id))
     .where(and(eq(leases.id, id), eq(properties.sessionId, sessionId)))
     .limit(1);
 
   if (rows.length === 0) return null;
 
   const [withTenants] = await attachTenants([rows[0].lease]);
-  return { ...withTenants, property: rows[0].property };
+  return { ...withTenants, unit: rows[0].unit, property: rows[0].property };
 }
 
 export async function getAllLeases(): Promise<LeaseWithPropertyAndTenants[]> {
   const sessionId = await getSessionId();
   const rows = await db
-    .select({ lease: leases, property: properties })
+    .select({ lease: leases, unit: units, property: properties })
     .from(leases)
-    .innerJoin(properties, eq(leases.propertyId, properties.id))
+    .innerJoin(units, eq(leases.unitId, units.id))
+    .innerJoin(properties, eq(units.propertyId, properties.id))
     .where(eq(properties.sessionId, sessionId))
     .orderBy(desc(leases.startDate));
 
   const withTenants = await attachTenants(rows.map((r) => r.lease));
-  return withTenants.map((lease, i) => ({ ...lease, property: rows[i].property }));
+  return withTenants.map((lease, i) => ({
+    ...lease,
+    unit: rows[i].unit,
+    property: rows[i].property,
+  }));
 }
 
 // Tenant names aren't sortable here: they're a many-to-many aggregate, not a
@@ -260,9 +286,10 @@ export async function getLeasesPage(
 
   const [rows, [{ total }]] = await Promise.all([
     db
-      .select({ lease: leases, property: properties })
+      .select({ lease: leases, unit: units, property: properties })
       .from(leases)
-      .innerJoin(properties, eq(leases.propertyId, properties.id))
+      .innerJoin(units, eq(leases.unitId, units.id))
+      .innerJoin(properties, eq(units.propertyId, properties.id))
       .where(where)
       .orderBy(orderBy(LEASE_SORT_COLUMNS, params))
       .limit(params.pageSize)
@@ -270,7 +297,8 @@ export async function getLeasesPage(
     db
       .select({ total: count() })
       .from(leases)
-      .innerJoin(properties, eq(leases.propertyId, properties.id))
+      .innerJoin(units, eq(leases.unitId, units.id))
+      .innerJoin(properties, eq(units.propertyId, properties.id))
       .where(where),
   ]);
 
@@ -278,6 +306,7 @@ export async function getLeasesPage(
   return {
     rows: withTenants.map((lease, i) => ({
       ...lease,
+      unit: rows[i].unit,
       property: rows[i].property,
     })),
     total,
@@ -325,9 +354,10 @@ export async function universalSearch(q: string): Promise<UniversalSearchResults
     // A lease matches by its property's name or by any of its tenants' names,
     // same as the leases page search.
     db
-      .select({ lease: leases, property: properties })
+      .select({ lease: leases, unit: units, property: properties })
       .from(leases)
-      .innerJoin(properties, eq(leases.propertyId, properties.id))
+      .innerJoin(units, eq(leases.unitId, units.id))
+      .innerJoin(properties, eq(units.propertyId, properties.id))
       .where(
         and(
           eq(properties.sessionId, sessionId),
@@ -352,6 +382,7 @@ export async function universalSearch(q: string): Promise<UniversalSearchResults
   const withTenants = await attachTenants(leaseRows.map((r) => r.lease));
   const matchedLeases = withTenants.map((lease, i) => ({
     ...lease,
+    unit: leaseRows[i].unit,
     property: leaseRows[i].property,
   }));
 
@@ -362,13 +393,18 @@ export async function getTenantLeases(
   tenantId: string,
 ): Promise<LeaseWithPropertyAndTenants[]> {
   const rows = await db
-    .select({ lease: leases, property: properties })
+    .select({ lease: leases, unit: units, property: properties })
     .from(leaseTenants)
     .innerJoin(leases, eq(leaseTenants.leaseId, leases.id))
-    .innerJoin(properties, eq(leases.propertyId, properties.id))
+    .innerJoin(units, eq(leases.unitId, units.id))
+    .innerJoin(properties, eq(units.propertyId, properties.id))
     .where(eq(leaseTenants.tenantId, tenantId))
     .orderBy(desc(leases.startDate));
 
   const withTenants = await attachTenants(rows.map((r) => r.lease));
-  return withTenants.map((lease, i) => ({ ...lease, property: rows[i].property }));
+  return withTenants.map((lease, i) => ({
+    ...lease,
+    unit: rows[i].unit,
+    property: rows[i].property,
+  }));
 }

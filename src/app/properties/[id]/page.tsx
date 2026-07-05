@@ -6,9 +6,14 @@ import Stack from "@mui/material/Stack";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
+import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import { getProperty, getPropertyLeases } from "@/db/queries";
+import {
+  getProperty,
+  getPropertyUnits,
+  getPropertyLeases,
+} from "@/db/queries";
 import { StatusBadge, LeaseStatusBadge } from "@/components/badge";
 import { Avatar } from "@/components/avatar";
 import { PROPERTY_TYPES } from "@/lib/validation";
@@ -71,12 +76,33 @@ export default async function PropertyDetailPage({
 
   if (!property) notFound();
 
-  const leases = await getPropertyLeases(property.id);
-  const currentLease =
-    leases.find((l) => l.status === "active") ??
-    leases.find((l) => l.status === "upcoming") ??
-    null;
-  const pastLeases = leases.filter((l) => l.id !== currentLease?.id);
+  const [units, leases] = await Promise.all([
+    getPropertyUnits(property.id),
+    getPropertyLeases(property.id),
+  ]);
+
+  // Group leases under their unit, and pick each unit's "current" lease — the
+  // active one, or an upcoming one if the unit is between tenants.
+  const leasesByUnit = new Map<string, typeof leases>();
+  for (const lease of leases) {
+    const list = leasesByUnit.get(lease.unitId) ?? [];
+    list.push(lease);
+    leasesByUnit.set(lease.unitId, list);
+  }
+
+  const currentLeaseByUnit = new Map<string, (typeof leases)[number] | null>();
+  const currentLeaseIds = new Set<string>();
+  for (const unit of units) {
+    const unitLeases = leasesByUnit.get(unit.id) ?? [];
+    const current =
+      unitLeases.find((l) => l.status === "active") ??
+      unitLeases.find((l) => l.status === "upcoming") ??
+      null;
+    currentLeaseByUnit.set(unit.id, current);
+    if (current) currentLeaseIds.add(current.id);
+  }
+
+  const pastLeases = leases.filter((l) => !currentLeaseIds.has(l.id));
   const hasActiveLease = leases.some((l) => l.status === "active");
 
   return (
@@ -131,56 +157,109 @@ export default async function PropertyDetailPage({
         />
       </dl>
 
-      <Paper component="section" variant="outlined" sx={{ mt: 3, p: 3 }}>
+      <section className="mt-6">
         <div className="flex items-center justify-between">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
-            Lease
+            {units.length === 1 ? "Unit" : `Units (${units.length})`}
           </h2>
-          {currentLease && <LeaseStatusBadge status={currentLease.status} />}
         </div>
 
-        {currentLease ? (
-          <div className="mt-3">
-            <p className="text-sm">
-              {currentLease.tenants.map((t, i) => (
-                <span key={t.id}>
-                  {i > 0 && ", "}
-                  <Link
-                    href={`/tenants/${t.id}`}
-                    className="font-medium hover:underline"
-                  >
-                    {t.name}
-                  </Link>
-                </span>
-              ))}
-            </p>
-            <p className="mt-1 text-sm text-ink-muted">
-              {formatDate(new Date(currentLease.startDate))} –{" "}
-              {currentLease.endDate
-                ? formatDate(new Date(currentLease.endDate))
-                : "present"}
-              {" · "}
-              {formatMoney(currentLease.rentAmount)}/mo
-              {currentLease.depositAmount &&
-                ` · ${formatMoney(currentLease.depositAmount)} deposit`}
-            </p>
-            {currentLease.status !== "ended" && (
-              <div className="mt-3">
-                <EndLeaseButton id={currentLease.id} propertyId={property.id} />
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="mt-3">
-            <p className="text-sm text-ink-muted">No active lease.</p>
-            <Link href={`/properties/${property.id}/lease/new`}>
-              <Button variant="contained" component="span" sx={{ mt: 1.5 }}>
-                Start lease
-              </Button>
-            </Link>
-          </div>
-        )}
-      </Paper>
+        <Stack sx={{ mt: 2, bgcolor: "var(--surface)", overflowX: "auto" }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Unit</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Tenant</TableCell>
+                <TableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
+                  Term
+                </TableCell>
+                <TableCell align="right">Rent</TableCell>
+                <TableCell align="right" />
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {units.map((unit) => {
+                const currentLease = currentLeaseByUnit.get(unit.id) ?? null;
+                return (
+                  <TableRow key={unit.id} hover>
+                    <TableCell>
+                      <span className="text-sm font-semibold">
+                        {unit.label}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {currentLease ? (
+                        <LeaseStatusBadge status={currentLease.status} />
+                      ) : (
+                        <span className="text-sm text-ink-muted">Vacant</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {currentLease ? (
+                        <span className="text-sm">
+                          {currentLease.tenants.map((t, i) => (
+                            <span key={t.id}>
+                              {i > 0 && ", "}
+                              <Link
+                                href={`/tenants/${t.id}`}
+                                className="font-medium hover:underline"
+                              >
+                                {t.name}
+                              </Link>
+                            </span>
+                          ))}
+                        </span>
+                      ) : (
+                        <span className="text-sm text-ink-faint">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
+                      {currentLease ? (
+                        <span className="text-sm text-ink-muted">
+                          {formatDate(new Date(currentLease.startDate))} –{" "}
+                          {currentLease.endDate
+                            ? formatDate(new Date(currentLease.endDate))
+                            : "present"}
+                        </span>
+                      ) : (
+                        <span className="text-sm text-ink-faint">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell align="right">
+                      {currentLease ? (
+                        <span className="text-sm tabular-nums">
+                          {formatMoney(currentLease.rentAmount)}/mo
+                        </span>
+                      ) : (
+                        <span className="text-sm text-ink-faint">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell align="right">
+                      {currentLease ? (
+                        currentLease.status !== "ended" && (
+                          <EndLeaseButton
+                            id={currentLease.id}
+                            propertyId={property.id}
+                          />
+                        )
+                      ) : (
+                        <Link
+                          href={`/properties/${property.id}/lease/new?unit=${unit.id}`}
+                        >
+                          <Button variant="contained" size="small" component="span">
+                            Start lease
+                          </Button>
+                        </Link>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </Stack>
+      </section>
 
       {pastLeases.length > 0 && (
         <section className="mt-6">
@@ -198,6 +277,7 @@ export default async function PropertyDetailPage({
                           {lease.tenants.map((t) => t.name).join(", ")}
                         </p>
                         <p className="mt-0.5 text-xs text-ink-faint">
+                          {lease.unit.label} ·{" "}
                           {formatDate(new Date(lease.startDate))} –{" "}
                           {lease.endDate
                             ? formatDate(new Date(lease.endDate))

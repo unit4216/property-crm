@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getProperty } from "@/db/queries";
+import { getProperty, getPropertyUnits } from "@/db/queries";
 import { updateProperty } from "../../actions";
 import { PropertyForm } from "../../property-form";
 
@@ -12,7 +12,10 @@ export default async function EditPropertyPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const property = await getProperty(id);
+  const [property, units] = await Promise.all([
+    getProperty(id),
+    getPropertyUnits(id),
+  ]);
 
   if (!property) notFound();
 
@@ -33,6 +36,7 @@ export default async function EditPropertyPage({
       <PropertyForm
         action={action}
         property={property}
+        units={units}
         submitLabel="Save changes"
         cancelHref={`/properties/${property.id}`}
         successHref={`/properties/${property.id}`}

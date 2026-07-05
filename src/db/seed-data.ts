@@ -2,6 +2,7 @@ import { db } from "./index";
 import {
   properties,
   tenants,
+  units,
   leases,
   leaseTenants,
   type NewProperty,
@@ -11,8 +12,9 @@ import {
 
 type PropertySeed = Omit<NewProperty, "sessionId"> & { key: string };
 type TenantSeed = Omit<NewTenant, "sessionId"> & { key: string };
-type LeaseSeed = Omit<NewLease, "propertyId"> & {
-  propertyKey: string;
+type UnitSeed = { key: string; propertyKey: string; label: string };
+type LeaseSeed = Omit<NewLease, "unitId"> & {
+  unitKey: string;
   tenantKeys: string[];
 };
 
@@ -202,29 +204,45 @@ const sampleTenants: TenantSeed[] = [
   },
 ];
 
+// Every property has at least one unit. Multi-family buildings are split into
+// their individual leasable units; single-unit properties get one entry.
+const sampleUnits: UnitSeed[] = [
+  { key: "maple-a", propertyKey: "maple", label: "Unit A" },
+  { key: "maple-b", propertyKey: "maple", label: "Unit B" },
+  { key: "loft-main", propertyKey: "loft", label: "Unit 3B" },
+  { key: "lakeview-main", propertyKey: "lakeview", label: "Main home" },
+  { key: "cedar-main", propertyKey: "cedar", label: "Unit 12" },
+  { key: "riverside-main", propertyKey: "riverside", label: "Apt 204" },
+  { key: "oakhill-main", propertyKey: "oakhill", label: "Main home" },
+  { key: "commerce-main", propertyKey: "commerce", label: "Retail suite" },
+  { key: "sunset-main", propertyKey: "sunset", label: "Parcel" },
+  { key: "pecan-a", propertyKey: "pecan", label: "Unit A" },
+  { key: "pecan-b", propertyKey: "pecan", label: "Unit B" },
+  { key: "pecan-c", propertyKey: "pecan", label: "Unit C" },
+  { key: "pecan-d", propertyKey: "pecan", label: "Unit D" },
+];
+
 const sampleLeases: LeaseSeed[] = [
   {
-    propertyKey: "maple",
+    unitKey: "maple-a",
     tenantKeys: ["chen"],
     status: "active",
     startDate: "2026-01-01",
     endDate: "2026-12-31",
     rentAmount: "1450.00",
     depositAmount: "1450.00",
-    notes: "Unit A.",
   },
   {
-    propertyKey: "maple",
+    unitKey: "maple-b",
     tenantKeys: ["johnson"],
     status: "active",
     startDate: "2026-03-01",
     endDate: "2027-02-28",
     rentAmount: "1400.00",
     depositAmount: "1400.00",
-    notes: "Unit B.",
   },
   {
-    propertyKey: "cedar",
+    unitKey: "cedar-main",
     tenantKeys: ["nguyen-d", "nguyen-e"],
     status: "active",
     startDate: "2025-09-01",
@@ -233,7 +251,7 @@ const sampleLeases: LeaseSeed[] = [
     depositAmount: "2250.00",
   },
   {
-    propertyKey: "riverside",
+    unitKey: "riverside-main",
     tenantKeys: ["patel"],
     status: "active",
     startDate: "2026-05-15",
@@ -242,7 +260,7 @@ const sampleLeases: LeaseSeed[] = [
     depositAmount: "1750.00",
   },
   {
-    propertyKey: "oakhill",
+    unitKey: "oakhill-main",
     tenantKeys: ["thompson"],
     status: "active",
     startDate: "2026-02-01",
@@ -251,7 +269,7 @@ const sampleLeases: LeaseSeed[] = [
     depositAmount: "2100.00",
   },
   {
-    propertyKey: "commerce",
+    unitKey: "commerce-main",
     tenantKeys: ["reyes"],
     status: "active",
     startDate: "2024-06-01",
@@ -262,7 +280,7 @@ const sampleLeases: LeaseSeed[] = [
   },
   {
     // Prior tenant of the Oak Hill bungalow, moved out.
-    propertyKey: "oakhill",
+    unitKey: "oakhill-main",
     tenantKeys: ["okafor"],
     status: "ended",
     startDate: "2025-01-01",
@@ -272,7 +290,7 @@ const sampleLeases: LeaseSeed[] = [
   },
   {
     // Upcoming lease for the loft that is currently being turned over.
-    propertyKey: "loft",
+    unitKey: "loft-main",
     tenantKeys: ["okafor"],
     status: "upcoming",
     startDate: "2026-08-01",
@@ -285,6 +303,7 @@ const sampleLeases: LeaseSeed[] = [
 
 export const sampleCount = sampleProperties.length;
 export const tenantCount = sampleTenants.length;
+export const unitCount = sampleUnits.length;
 export const leaseCount = sampleLeases.length;
 
 // Populates a freshly created session with sample properties, tenants, and
@@ -308,12 +327,26 @@ export async function seedDemoData(sessionId: string) {
     sampleTenants.map((t, i) => [t.key, insertedTenants[i].id]),
   );
 
+  const insertedUnits = await db
+    .insert(units)
+    .values(
+      sampleUnits.map(({ propertyKey, label }) => ({
+        label,
+        propertyId: propertyIdByKey.get(propertyKey)!,
+      })),
+    )
+    .returning({ id: units.id });
+
+  const unitIdByKey = new Map(
+    sampleUnits.map((u, i) => [u.key, insertedUnits[i].id]),
+  );
+
   const insertedLeases = await db
     .insert(leases)
     .values(
-      sampleLeases.map(({ propertyKey, tenantKeys, ...l }) => ({
+      sampleLeases.map(({ unitKey, tenantKeys, ...l }) => ({
         ...l,
-        propertyId: propertyIdByKey.get(propertyKey)!,
+        unitId: unitIdByKey.get(unitKey)!,
       })),
     )
     .returning({ id: leases.id });
