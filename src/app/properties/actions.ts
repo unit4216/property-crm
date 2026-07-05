@@ -53,7 +53,6 @@ function toRow(
   return {
     name: input.name,
     type: input.type,
-    status: input.status,
     addressLine1: input.addressLine1,
     addressLine2: input.addressLine2 ?? null,
     city: input.city,
@@ -230,5 +229,62 @@ export async function deleteProperty(
 
   revalidatePath("/");
   revalidatePath("/properties");
+  return { ok: true };
+}
+
+// Marks a property "sold". Refused while any active or upcoming lease is on the
+// property — a sold property can't carry a current or future tenancy — using
+// the same open-lease guard as deleteProperty.
+export async function markPropertySold(
+  id: string,
+): Promise<{ error: string } | { ok: true }> {
+  const sessionId = await getSessionId();
+
+  const openLease = await db
+    .select({ id: leases.id })
+    .from(leases)
+    .innerJoin(units, eq(leases.unitId, units.id))
+    .where(and(eq(units.propertyId, id), leaseNotEnded))
+    .limit(1);
+  if (openLease.length > 0) {
+    return {
+      error:
+        "Can't mark a property sold while it has an active or upcoming lease. End the lease first.",
+    };
+  }
+
+  try {
+    await db
+      .update(properties)
+      .set({ status: "sold", updatedAt: new Date() })
+      .where(and(eq(properties.id, id), eq(properties.sessionId, sessionId)));
+  } catch {
+    return { error: "Something went wrong updating this property. Please try again." };
+  }
+
+  revalidatePath("/");
+  revalidatePath("/properties");
+  revalidatePath(`/properties/${id}`);
+  return { ok: true };
+}
+
+// Reverses a sale, returning a property to the active portfolio.
+export async function markPropertyActive(
+  id: string,
+): Promise<{ error: string } | { ok: true }> {
+  const sessionId = await getSessionId();
+
+  try {
+    await db
+      .update(properties)
+      .set({ status: "active", updatedAt: new Date() })
+      .where(and(eq(properties.id, id), eq(properties.sessionId, sessionId)));
+  } catch {
+    return { error: "Something went wrong updating this property. Please try again." };
+  }
+
+  revalidatePath("/");
+  revalidatePath("/properties");
+  revalidatePath(`/properties/${id}`);
   return { ok: true };
 }

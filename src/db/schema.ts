@@ -30,13 +30,11 @@ export const propertyTypeEnum = pgEnum("property_type", [
   "land",
 ]);
 
-export const propertyStatusEnum = pgEnum("property_status", [
-  "active",
-  "vacant",
-  "occupied",
-  "under_maintenance",
-  "listed",
-]);
+// A property's lifecycle: "active" while it's part of the portfolio, "sold"
+// once it's been disposed of. Occupancy is derived from lease coverage (see
+// lib/occupancy.ts), not this column. A property can only be marked sold when
+// it has no active or upcoming lease — see markPropertySold in properties/actions.ts.
+export const propertyStatusEnum = pgEnum("property_status", ["active", "sold"]);
 
 export const properties = pgTable("properties", {
   id: uuid("id").primaryKey().defaultRandom(),

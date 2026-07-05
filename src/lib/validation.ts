@@ -20,10 +20,7 @@ export const PROPERTY_STATUSES: Record<
   string
 > = {
   active: "Active",
-  vacant: "Vacant",
-  occupied: "Occupied",
-  under_maintenance: "Under maintenance",
-  listed: "Listed",
+  sold: "Sold",
 };
 
 // US states (plus DC) offered by the property form's state autocomplete. The
@@ -109,10 +106,12 @@ const optionalEmail = z.preprocess(
   z.string().trim().email("Invalid email").optional(),
 );
 
+// `status` is intentionally absent: it isn't set through the property form.
+// New properties default to "active" (see the schema), and the only transition
+// — to "sold" — happens via the guarded markPropertySold action.
 export const propertySchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(200),
   type: z.enum(propertyTypeEnum.enumValues),
-  status: z.enum(propertyStatusEnum.enumValues),
 
   addressLine1: z.string().trim().min(1, "Address is required").max(200),
   addressLine2: optionalText,

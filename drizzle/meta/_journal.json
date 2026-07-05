@@ -43,6 +43,13 @@
       "when": 1783271869803,
       "tag": "0005_daily_dakota_north",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1783273657404,
+      "tag": "0006_change_property_status_to_active_sold",
+      "breakpoints": true
     }
   ]
 }

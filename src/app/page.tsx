@@ -200,8 +200,16 @@ export default async function DashboardPage() {
       (a, b) => new Date(a.endDate!).getTime() - new Date(b.endDate!).getTime(),
     );
 
+  // Vacant = no unit currently under an active lease, derived from lease
+  // coverage like the occupancy chart rather than the status column. Sold
+  // properties have left the portfolio, so they're excluded.
+  const vacantPropertyIds = new Set(
+    propertyOccupancy
+      .filter((p) => p.occupiedUnits === 0)
+      .map((p) => p.propertyId),
+  );
   const vacantProperties = properties.filter(
-    (p) => p.status === "vacant" || p.status === "listed",
+    (p) => p.status !== "sold" && vacantPropertyIds.has(p.id),
   );
 
   // Signed but not yet started, soonest first.
@@ -275,9 +283,9 @@ export default async function DashboardPage() {
             }))}
           />
           <ListCard
-            title="Vacant & listed properties"
+            title="Vacant properties"
             count={vacantProperties.length}
-            emptyMessage="No vacant or listed properties."
+            emptyMessage="No vacant properties."
             seeMoreHref="/properties"
             rows={vacantProperties.map((p) => ({
               href: `/properties/${p.id}`,

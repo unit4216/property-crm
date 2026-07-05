@@ -6,10 +6,7 @@ import { LEASE_STATUSES, type LeaseStatus } from "@/lib/lease-status";
 // indicator next to a muted label — calmer than a filled pill in every row.
 const STATUS_DOT_COLORS: Record<Property["status"], string> = {
   active: "#059669", // emerald
-  occupied: "#2563eb", // blue
-  vacant: "#d97706", // amber
-  under_maintenance: "#ea580c", // orange
-  listed: "#7c3aed", // violet
+  sold: "#737373", // neutral
 };
 
 function StatusDot({ color, label }: { color: string; label: string }) {

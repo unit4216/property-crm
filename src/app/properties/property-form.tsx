@@ -17,7 +17,6 @@ import { successButtonSx } from "@/components/success-button-sx";
 import { CheckIcon } from "@/components/check-icon";
 import { PlusIcon } from "@/components/plus-icon";
 import {
-  PROPERTY_STATUSES,
   PROPERTY_TYPES,
   US_STATES,
   type FormState,
@@ -162,40 +161,22 @@ export function PropertyForm({
             fullWidth
           />
 
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-            <TextField
-              id="type"
-              name="type"
-              label="Type"
-              select
-              defaultValue={values.type ?? property?.type ?? "single_family"}
-              error={!!errors.type}
-              helperText={errors.type?.[0]}
-              fullWidth
-            >
-              {Object.entries(PROPERTY_TYPES).map(([value, label]) => (
-                <MenuItem key={value} value={value}>
-                  {label}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              id="status"
-              name="status"
-              label="Status"
-              select
-              defaultValue={values.status ?? property?.status ?? "active"}
-              error={!!errors.status}
-              helperText={errors.status?.[0]}
-              fullWidth
-            >
-              {Object.entries(PROPERTY_STATUSES).map(([value, label]) => (
-                <MenuItem key={value} value={value}>
-                  {label}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Stack>
+          <TextField
+            id="type"
+            name="type"
+            label="Type"
+            select
+            defaultValue={values.type ?? property?.type ?? "single_family"}
+            error={!!errors.type}
+            helperText={errors.type?.[0]}
+            fullWidth
+          >
+            {Object.entries(PROPERTY_TYPES).map(([value, label]) => (
+              <MenuItem key={value} value={value}>
+                {label}
+              </MenuItem>
+            ))}
+          </TextField>
         </Section>
 
         <Section title="Address">

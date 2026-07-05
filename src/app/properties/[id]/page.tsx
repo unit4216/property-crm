@@ -24,6 +24,7 @@ import {
   formatMoney,
 } from "@/lib/format";
 import { DeleteButton } from "../delete-button";
+import { MarkSoldButton } from "../mark-sold-button";
 import { EndLeaseButton } from "../end-lease-button";
 
 export const dynamic = "force-dynamic";
@@ -142,6 +143,11 @@ export default async function PropertyDetailPage({
               Edit
             </Button>
           </Link>
+          <MarkSoldButton
+            id={property.id}
+            status={property.status}
+            blocked={hasOpenLease}
+          />
           <DeleteButton
             id={property.id}
             name={property.name}
