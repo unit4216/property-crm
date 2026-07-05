@@ -1,6 +1,10 @@
 # Property CRM
 
-A mini property-management CRM. MVP scope: full CRUD for **properties**.
+[![CI](https://github.com/unit4216/property-crm/actions/workflows/ci.yml/badge.svg)](https://github.com/unit4216/property-crm/actions/workflows/ci.yml)
+
+A mini property-management CRM. Full CRUD for **properties**, **tenants**,
+**units**, and **leases**, plus a portfolio **dashboard** with occupancy stats
+and charts.
 
 Built as a portfolio project with a production-minded stack:
 
@@ -8,7 +12,8 @@ Built as a portfolio project with a production-minded stack:
 - **TypeScript**
 - **Drizzle ORM** + **postgres.js** over plain Postgres
 - **Zod** for server-side validation
-- **Tailwind CSS v4**
+- **MUI** (Material UI + MUI X Charts) with **Tailwind CSS v4** for layout
+- **Vitest** (unit) + **Playwright** (end-to-end), gated in CI
 
 ## Architecture notes
 
@@ -18,13 +23,17 @@ the exact same code runs against **local Postgres** in development and
 separate local Supabase stack (and therefore no Docker) is required.
 
 - Reads happen in Server Components (`src/db/queries.ts`).
-- Writes happen in Server Actions (`src/app/properties/actions.ts`), validated
-  with a shared Zod schema (`src/lib/validation.ts`) and revalidated with
+- Writes happen in per-entity Server Actions (e.g.
+  `src/app/properties/actions.ts`, `src/app/tenants/actions.ts`), validated with
+  shared Zod schemas (`src/lib/validation.ts`) and revalidated with
   `revalidatePath`.
+- No login: each visitor is assigned an **anonymous session** (cookie-backed,
+  `src/lib/session.ts`) and demo data is seeded lazily for them, so the app is
+  usable from a cold start with no auth or fixtures.
 
 ## Getting started (local)
 
-Requires Node 20+ and a local Postgres instance.
+Requires **Node 24** (see `.nvmrc`) and a local Postgres instance.
 
 ```bash
 # 1. Install deps
@@ -51,18 +60,19 @@ Open http://localhost:3000.
 
 ## Scripts
 
-| Script                | What it does                            |
-| --------------------- | --------------------------------------- |
-| `npm run dev`         | Start the dev server                    |
-| `npm run build`       | Production build                        |
-| `npm test`            | Run the Vitest unit suite               |
-| `npm run test:watch`  | Vitest in watch mode                    |
-| `npm run test:e2e`    | Run the Playwright end-to-end suite     |
-| `npm run db:generate` | Generate a migration from `schema.ts`   |
-| `npm run db:migrate`  | Apply pending migrations                |
-| `npm run db:push`     | Push schema directly (prototyping)      |
-| `npm run db:studio`   | Open Drizzle Studio                     |
-| `npm run db:seed`     | Reset + load sample properties          |
+| Script                 | What it does                          |
+| ---------------------- | ------------------------------------- |
+| `npm run dev`          | Start the dev server                  |
+| `npm run build`        | Production build                      |
+| `npm test`             | Run the Vitest unit suite             |
+| `npm run test:watch`   | Vitest in watch mode                  |
+| `npm run test:coverage`| Vitest with an Istanbul coverage report |
+| `npm run test:e2e`     | Run the Playwright end-to-end suite   |
+| `npm run db:generate`  | Generate a migration from `schema.ts` |
+| `npm run db:migrate`   | Apply pending migrations              |
+| `npm run db:push`      | Push schema directly (prototyping)    |
+| `npm run db:studio`    | Open Drizzle Studio                   |
+| `npm run db:seed`      | Reset + load sample data              |
 
 ## Testing
 
@@ -79,8 +89,17 @@ Two layers, both runnable from a clean checkout after `npm install`:
   login or fixture setup. First run: `npx playwright install chromium`. Then
   `npm run test:e2e`.
 
-There's no CI wired up yet; both suites are meant to be run locally (or added to
-a workflow later).
+## Continuous integration
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every push to
+`main` and every pull request, using the Node version pinned in `.nvmrc`:
+
+- **Lint & unit tests** — `npm ci` → `npm run lint` → `npm test`.
+- **End-to-end tests** — spins up a Postgres service, applies migrations, then
+  runs the Playwright suite.
+
+Both checks are required to pass before a PR can merge (enforced via a branch
+ruleset), so a red test suite blocks the merge.
 
 ## Deploying with Supabase
 
@@ -95,26 +114,29 @@ a workflow later).
 ```
 src/
   app/
-    page.tsx                      # Properties list (home)
-    properties/
-      actions.ts                  # create / update / delete Server Actions
-      property-form.tsx           # shared create/edit form (client)
-      delete-button.tsx           # delete w/ confirm (client)
-      new/page.tsx                # create
-      [id]/page.tsx               # detail
-      [id]/edit/page.tsx          # edit
+    page.tsx                      # Dashboard (home): stats + charts
+    properties/                   # list, new, [id] detail, [id]/edit,
+      actions.ts                  #   [id]/lease/new — plus create/update/delete actions
+    tenants/                      # list, new, [id] detail, [id]/edit
+      actions.ts                  #   create/update/delete actions
+    leases/                       # list + [id] detail
   db/
-    schema.ts                     # Drizzle schema (single `properties` table)
+    schema.ts                     # Drizzle schema (properties, tenants, units, leases, sessions)
     index.ts                      # db client
     queries.ts                    # read queries
-    seed.ts                       # sample data
+    maintenance.ts                # per-session demo-data lifecycle
+    seed.ts / seed-data.ts        # sample data
   lib/
-    validation.ts                 # Zod schema + enum labels
+    validation.ts                 # Zod schemas + enum labels
+    session.ts                    # anonymous session handling
+    lease-status.ts               # lease-state derivation
+    occupancy.ts                  # occupancy math
     format.ts                     # display formatting helpers
-  components/
-    badge.tsx                     # status badge
+    table-params.ts               # list search / filter / pagination params
+  components/                     # sidebar, data table, charts, dialogs, badges, …
 ```
 
-## Roadmap (beyond MVP)
+## Roadmap
 
-Tenants, leases, units, work orders, payments, and auth (Supabase Auth + RLS).
+Work orders, payments, and real authentication (Supabase Auth + RLS) to replace
+the anonymous-session model.
