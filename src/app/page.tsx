@@ -3,6 +3,7 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import { getProperties, getTenants, getAllLeases } from "@/db/queries";
 import { StatTile } from "@/components/stat-tile";
+import { UniversalSearch } from "@/components/universal-search";
 import {
   PropertyStatusChart,
   OccupancyTrendChart,
@@ -193,14 +194,17 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <div>
-        <p className="text-sm font-medium text-ink-muted">Portfolio</p>
-        <h1 className="mt-1 text-4xl font-semibold tracking-tight">
-          Dashboard
-        </h1>
-        <p className="mt-2 text-sm text-ink-muted">
-          An overview of your properties.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-medium text-ink-muted">Portfolio</p>
+          <h1 className="mt-1 text-4xl font-semibold tracking-tight">
+            Dashboard
+          </h1>
+          <p className="mt-2 text-sm text-ink-muted">
+            An overview of your properties.
+          </p>
+        </div>
+        <UniversalSearch />
       </div>
 
       {/* Stat tiles */}
