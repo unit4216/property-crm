@@ -269,6 +269,47 @@ export async function getLeasesPage(
   };
 }
 
+export type UniversalSearchResults = {
+  properties: Property[];
+  tenants: Tenant[];
+};
+
+const UNIVERSAL_SEARCH_LIMIT = 5;
+
+// Top few matches across properties and tenants, for the dashboard's
+// universal search. Scoped to the current session like every other query.
+export async function universalSearch(q: string): Promise<UniversalSearchResults> {
+  if (!q.trim()) return { properties: [], tenants: [] };
+  const sessionId = await getSessionId();
+
+  const [matchedProperties, matchedTenants] = await Promise.all([
+    db
+      .select()
+      .from(properties)
+      .where(
+        and(
+          eq(properties.sessionId, sessionId),
+          search(q, [properties.name, properties.city, properties.addressLine1]),
+        ),
+      )
+      .orderBy(properties.name)
+      .limit(UNIVERSAL_SEARCH_LIMIT),
+    db
+      .select()
+      .from(tenants)
+      .where(
+        and(
+          eq(tenants.sessionId, sessionId),
+          search(q, [tenants.name, tenants.email, tenants.phone]),
+        ),
+      )
+      .orderBy(tenants.name)
+      .limit(UNIVERSAL_SEARCH_LIMIT),
+  ]);
+
+  return { properties: matchedProperties, tenants: matchedTenants };
+}
+
 export async function getTenantLeases(
   tenantId: string,
 ): Promise<LeaseWithPropertyAndTenants[]> {
