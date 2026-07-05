@@ -6,6 +6,7 @@ import {
   desc,
   eq,
   exists,
+  getTableColumns,
   ilike,
   inArray,
   or,
@@ -34,7 +35,7 @@ export type Paginated<T> = { rows: T[]; total: number };
 // whitelisted by parseTableParams, so a missing entry falls back to the column
 // map's default rather than trusting arbitrary input.
 function orderBy(
-  columns: Record<string, PgColumn>,
+  columns: Record<string, PgColumn | SQL>,
   params: TableParams,
 ): SQL {
   const column = columns[params.sort] ?? Object.values(columns)[0];
@@ -78,21 +79,47 @@ export async function getPropertyUnits(propertyId: string): Promise<Unit[]> {
     .orderBy(asc(units.label));
 }
 
-const PROPERTY_SORT_COLUMNS: Record<string, PgColumn> = {
-  name: properties.name,
-  type: properties.type,
-  location: properties.city,
-  status: properties.status,
-  rent: properties.rentAmount,
-  created: properties.createdAt,
-};
+export const PROPERTY_SORT_KEYS = [
+  "name",
+  "type",
+  "location",
+  "status",
+  "rent",
+  "created",
+];
 
-export const PROPERTY_SORT_KEYS = Object.keys(PROPERTY_SORT_COLUMNS);
+// A property's monthly rent isn't stored — it's the income from its currently
+// active leases (summed across the property's units). Vacant properties, whose
+// only leases are ended or upcoming, coalesce to 0.
+export type PropertyWithRent = Property & { monthlyRent: string };
 
 export async function getPropertiesPage(
   params: TableParams,
-): Promise<Paginated<Property>> {
+): Promise<Paginated<PropertyWithRent>> {
   const sessionId = await getSessionId();
+
+  const activeRent = db
+    .select({
+      propertyId: units.propertyId,
+      monthlyRent: sql<string>`sum(${leases.rentAmount})`.as("monthly_rent"),
+    })
+    .from(leases)
+    .innerJoin(units, eq(leases.unitId, units.id))
+    .where(eq(leases.status, "active"))
+    .groupBy(units.propertyId)
+    .as("active_rent");
+
+  const monthlyRent = sql<string>`coalesce(${activeRent.monthlyRent}, 0)`;
+
+  const sortColumns: Record<string, PgColumn | SQL> = {
+    name: properties.name,
+    type: properties.type,
+    location: properties.city,
+    status: properties.status,
+    rent: monthlyRent,
+    created: properties.createdAt,
+  };
+
   const where = and(
     eq(properties.sessionId, sessionId),
     search(params.q, [
@@ -105,10 +132,11 @@ export async function getPropertiesPage(
 
   const [rows, [{ total }]] = await Promise.all([
     db
-      .select()
+      .select({ ...getTableColumns(properties), monthlyRent })
       .from(properties)
+      .leftJoin(activeRent, eq(activeRent.propertyId, properties.id))
       .where(where)
-      .orderBy(orderBy(PROPERTY_SORT_COLUMNS, params))
+      .orderBy(orderBy(sortColumns, params))
       .limit(params.pageSize)
       .offset(params.offset),
     db.select({ total: count() }).from(properties).where(where),

@@ -5,6 +5,7 @@ import {
   getPropertiesPage,
   getAllLeases,
   PROPERTY_SORT_KEYS,
+  type PropertyWithRent,
 } from "@/db/queries";
 import { StatusBadge } from "@/components/badge";
 import { Avatar } from "@/components/avatar";
@@ -18,12 +19,11 @@ import { currentOccupiedCount } from "@/lib/occupancy";
 import { parseTableParams, type RawSearchParams } from "@/lib/table-params";
 import { PROPERTY_TYPES } from "@/lib/validation";
 import { formatCityLine, formatMoney } from "@/lib/format";
-import type { Property } from "@/db/schema";
 
 // searchParams (q/sort/dir/page) makes this a request-time, dynamic render.
 export const dynamic = "force-dynamic";
 
-const columns: Column<Property>[] = [
+const columns: Column<PropertyWithRent>[] = [
   {
     key: "name",
     header: "Property",
@@ -73,7 +73,7 @@ const columns: Column<Property>[] = [
     render: (p) => (
       <div className="flex items-center justify-end gap-3">
         <span className="font-medium tabular-nums">
-          {p.rentAmount ? formatMoney(p.rentAmount) : "—"}
+          {Number(p.monthlyRent) > 0 ? formatMoney(p.monthlyRent) : "—"}
         </span>
         <RowChevron />
       </div>
@@ -101,10 +101,10 @@ export default async function PropertiesPage({
     getPropertiesPage(params),
   ]);
 
-  const rentRoll = all.reduce(
-    (sum, p) => sum + (p.rentAmount ? Number(p.rentAmount) : 0),
-    0,
-  );
+  // Rent roll is realized income: the sum of every active lease's rent.
+  const rentRoll = leases
+    .filter((l) => l.status === "active")
+    .reduce((sum, l) => sum + (l.rentAmount ? Number(l.rentAmount) : 0), 0);
   // Occupancy from lease coverage, matching the dashboard (not the status column).
   const occupied = currentOccupiedCount(
     leases.map((l) => ({

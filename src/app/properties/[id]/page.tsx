@@ -104,6 +104,12 @@ export default async function PropertyDetailPage({
 
   const hasActiveLease = leases.some((l) => l.status === "active");
 
+  // Monthly rent is derived income: the sum of rent across the property's
+  // currently active leases, not a figure stored on the property itself.
+  const monthlyRent = leases
+    .filter((l) => l.status === "active")
+    .reduce((sum, l) => sum + (l.rentAmount ? Number(l.rentAmount) : 0), 0);
+
   return (
     <div>
       <Link href="/properties" className="text-sm text-ink-muted hover:text-ink">
@@ -145,8 +151,8 @@ export default async function PropertyDetailPage({
       <dl className="mt-6 flex flex-wrap gap-8">
         <Stat
           label="Rent / mo"
-          value={property.rentAmount ? formatMoney(property.rentAmount) : "—"}
-          accent={!!property.rentAmount}
+          value={monthlyRent > 0 ? formatMoney(monthlyRent.toString()) : "—"}
+          accent={monthlyRent > 0}
         />
         <Stat label="Beds" value={property.bedrooms?.toString() ?? "—"} />
         <Stat label="Baths" value={property.bathrooms ?? "—"} />

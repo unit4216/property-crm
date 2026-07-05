@@ -351,17 +351,6 @@ export function PropertyForm({
               helperText={errors.squareFeet?.[0]}
               fullWidth
             />
-            <TextField
-              id="rentAmount"
-              name="rentAmount"
-              label="Rent / mo"
-              type="number"
-              slotProps={{ htmlInput: { min: 0, step: 1 } }}
-              defaultValue={values.rentAmount ?? property?.rentAmount ?? ""}
-              error={!!errors.rentAmount}
-              helperText={errors.rentAmount?.[0]}
-              fullWidth
-            />
           </Stack>
           <TextField
             id="notes"

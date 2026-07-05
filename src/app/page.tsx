@@ -135,12 +135,14 @@ export default async function DashboardPage() {
     getAllLeases(),
   ]);
 
-  // Stat tiles
-  const rentRoll = properties.reduce(
-    (sum, p) => sum + (p.rentAmount ? Number(p.rentAmount) : 0),
+  // Stat tiles. Rent roll is realized income — the sum of every active lease's
+  // rent — not a figure stored on the property.
+  const activeLeases = leases.filter((l) => l.status === "active");
+  const rentRoll = activeLeases.reduce(
+    (sum, l) => sum + (l.rentAmount ? Number(l.rentAmount) : 0),
     0,
   );
-  const activeLeaseCount = leases.filter((l) => l.status === "active").length;
+  const activeLeaseCount = activeLeases.length;
 
   // Occupancy rate trend over the last 12 months. The current occupancy tile is
   // the latest point on the trend, so both use the same lease-coverage
@@ -267,7 +269,6 @@ export default async function DashboardPage() {
               href: `/properties/${p.id}`,
               primary: p.name,
               secondary: formatCityLine(p),
-              meta: p.rentAmount ? formatMoney(p.rentAmount) : undefined,
             }))}
           />
           <ListCard
