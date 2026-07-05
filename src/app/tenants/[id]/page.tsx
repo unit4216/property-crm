@@ -28,7 +28,9 @@ export default async function TenantDetailPage({
 
   if (!tenant) notFound();
 
-  const hasActiveLease = leases.some((l) => l.status === "active");
+  // An active or upcoming lease blocks deletion — neither should be silently
+  // discarded (mirrors leaseNotEnded in the deleteTenant guard).
+  const hasOpenLease = leases.some((l) => l.status !== "ended");
 
   return (
     <div>
@@ -58,7 +60,7 @@ export default async function TenantDetailPage({
           <DeleteTenantButton
             id={tenant.id}
             name={tenant.name}
-            blocked={hasActiveLease}
+            blocked={hasOpenLease}
           />
         </div>
       </div>

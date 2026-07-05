@@ -102,7 +102,9 @@ export default async function PropertyDetailPage({
     if (current) currentLeaseIds.add(current.id);
   }
 
-  const hasActiveLease = leases.some((l) => l.status === "active");
+  // An active or upcoming lease blocks deletion — neither should be silently
+  // discarded (mirrors leaseNotEnded in the deleteProperty guard).
+  const hasOpenLease = leases.some((l) => l.status !== "ended");
 
   // Monthly rent is derived income: the sum of rent across the property's
   // currently active leases, not a figure stored on the property itself.
@@ -143,7 +145,7 @@ export default async function PropertyDetailPage({
           <DeleteButton
             id={property.id}
             name={property.name}
-            blocked={hasActiveLease}
+            blocked={hasOpenLease}
           />
         </div>
       </div>

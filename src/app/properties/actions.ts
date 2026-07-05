@@ -5,7 +5,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { getSessionId } from "@/lib/session";
 import { leases, properties, units, type NewProperty } from "@/db/schema";
-import { leaseIsActive } from "@/db/queries";
+import { leaseNotEnded } from "@/db/queries";
 import {
   propertySchema,
   unitLabelSchema,
@@ -205,17 +205,18 @@ export async function deleteProperty(
 ): Promise<{ error: string } | { ok: true }> {
   const sessionId = await getSessionId();
 
-  // Refuse to delete while an active lease is on the property — the lease
-  // must be ended first so no active tenancy is silently discarded.
-  const activeLease = await db
+  // Refuse to delete while an active or upcoming lease is on the property, so
+  // no current or future tenancy is silently discarded.
+  const openLease = await db
     .select({ id: leases.id })
     .from(leases)
     .innerJoin(units, eq(leases.unitId, units.id))
-    .where(and(eq(units.propertyId, id), leaseIsActive))
+    .where(and(eq(units.propertyId, id), leaseNotEnded))
     .limit(1);
-  if (activeLease.length > 0) {
+  if (openLease.length > 0) {
     return {
-      error: "Can't delete a property with an active lease. End the lease first.",
+      error:
+        "Can't delete a property with an active or upcoming lease. End the lease first.",
     };
   }
 

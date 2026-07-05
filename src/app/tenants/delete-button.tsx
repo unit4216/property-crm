@@ -25,7 +25,7 @@ export function DeleteTenantButton({
 
   if (blocked) {
     return (
-      <Tooltip title="End the active lease before deleting this tenant.">
+      <Tooltip title="End the active or upcoming lease before deleting this tenant.">
         <span>
           <Button variant="outlined" color="error" disabled>
             Delete
