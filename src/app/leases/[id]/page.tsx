@@ -63,7 +63,7 @@ export default async function LeaseDetailPage({
             {formatAddressLine(lease.property)} · {formatCityLine(lease.property)}
           </p>
         </div>
-        {lease.status !== "ended" && (
+        {lease.status === "active" && (
           <EndLeaseButton id={lease.id} propertyId={lease.property.id} />
         )}
       </div>

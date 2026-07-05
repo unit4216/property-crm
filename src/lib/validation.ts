@@ -1,9 +1,5 @@
 import { z } from "zod";
-import {
-  propertyTypeEnum,
-  propertyStatusEnum,
-  leaseStatusEnum,
-} from "@/db/schema";
+import { propertyTypeEnum, propertyStatusEnum } from "@/db/schema";
 
 // Human-readable labels for the enum values, reused across forms and displays.
 export const PROPERTY_TYPES: Record<
@@ -180,19 +176,9 @@ export const unitLabelSchema = z
   .min(1, "Unit name is required")
   .max(UNIT_LABEL_MAX);
 
-export const LEASE_STATUSES: Record<
-  (typeof leaseStatusEnum.enumValues)[number],
-  string
-> = {
-  upcoming: "Upcoming",
-  active: "Active",
-  ended: "Ended",
-};
-
 export const leaseSchema = z.object({
   unitId: z.string().uuid("Select a unit"),
   tenantIds: z.array(z.string().uuid()).min(1, "Select at least one tenant"),
-  status: z.enum(leaseStatusEnum.enumValues),
   startDate: z.string().trim().min(1, "Start date is required"),
   endDate: optionalText,
   rentAmount: optionalDecimal,

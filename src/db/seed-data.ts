@@ -218,7 +218,6 @@ const sampleLeases: LeaseSeed[] = [
   {
     unitKey: "maple-a",
     tenantKeys: ["chen"],
-    status: "active",
     startDate: "2026-01-01",
     endDate: "2026-12-31",
     rentAmount: "1450.00",
@@ -227,7 +226,6 @@ const sampleLeases: LeaseSeed[] = [
   {
     unitKey: "maple-b",
     tenantKeys: ["johnson"],
-    status: "active",
     startDate: "2026-03-01",
     endDate: "2027-02-28",
     rentAmount: "1400.00",
@@ -236,7 +234,6 @@ const sampleLeases: LeaseSeed[] = [
   {
     unitKey: "cedar-main",
     tenantKeys: ["nguyen-d", "nguyen-e"],
-    status: "active",
     startDate: "2025-09-01",
     endDate: "2026-08-31",
     rentAmount: "2250.00",
@@ -245,7 +242,6 @@ const sampleLeases: LeaseSeed[] = [
   {
     unitKey: "riverside-main",
     tenantKeys: ["patel"],
-    status: "active",
     startDate: "2026-05-15",
     endDate: "2027-05-14",
     rentAmount: "1750.00",
@@ -254,7 +250,6 @@ const sampleLeases: LeaseSeed[] = [
   {
     unitKey: "oakhill-main",
     tenantKeys: ["thompson"],
-    status: "active",
     startDate: "2026-02-01",
     endDate: "2027-01-31",
     rentAmount: "2100.00",
@@ -263,7 +258,6 @@ const sampleLeases: LeaseSeed[] = [
   {
     unitKey: "commerce-main",
     tenantKeys: ["reyes"],
-    status: "active",
     startDate: "2024-06-01",
     endDate: "2029-05-31",
     rentAmount: "4800.00",
@@ -274,7 +268,6 @@ const sampleLeases: LeaseSeed[] = [
     // Prior tenant of the Oak Hill bungalow, moved out.
     unitKey: "oakhill-main",
     tenantKeys: ["okafor"],
-    status: "ended",
     startDate: "2025-01-01",
     endDate: "2026-01-15",
     rentAmount: "1950.00",
@@ -284,7 +277,6 @@ const sampleLeases: LeaseSeed[] = [
     // Upcoming lease for the loft that is currently being turned over.
     unitKey: "loft-main",
     tenantKeys: ["okafor"],
-    status: "upcoming",
     startDate: "2026-08-01",
     endDate: "2027-07-31",
     rentAmount: "1950.00",

@@ -5,6 +5,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { getSessionId } from "@/lib/session";
 import { leases, properties, units, type NewProperty } from "@/db/schema";
+import { leaseIsActive } from "@/db/queries";
 import {
   propertySchema,
   unitLabelSchema,
@@ -210,7 +211,7 @@ export async function deleteProperty(
     .select({ id: leases.id })
     .from(leases)
     .innerJoin(units, eq(leases.unitId, units.id))
-    .where(and(eq(units.propertyId, id), eq(leases.status, "active")))
+    .where(and(eq(units.propertyId, id), leaseIsActive))
     .limit(1);
   if (activeLease.length > 0) {
     return {

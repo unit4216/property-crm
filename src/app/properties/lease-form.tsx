@@ -16,7 +16,7 @@ import type { Tenant, Unit } from "@/db/schema";
 import { PlusIcon } from "@/components/plus-icon";
 import { CheckIcon } from "@/components/check-icon";
 import { successButtonSx } from "@/components/success-button-sx";
-import { LEASE_STATUSES, type FormState } from "@/lib/validation";
+import { type FormState } from "@/lib/validation";
 
 type TenantRow = { key: number; tenantId: string | null };
 
@@ -220,23 +220,6 @@ export function LeaseForm({
             <Typography variant="overline" sx={sectionTitleSx}>
               Terms
             </Typography>
-
-            <TextField
-              id="status"
-              name="status"
-              label="Status"
-              select
-              defaultValue={values.status ?? "active"}
-              error={!!errors.status}
-              helperText={errors.status?.[0]}
-              fullWidth
-            >
-              {Object.entries(LEASE_STATUSES).map(([value, label]) => (
-                <MenuItem key={value} value={value}>
-                  {label}
-                </MenuItem>
-              ))}
-            </TextField>
 
             <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
               <TextField

@@ -5,12 +5,12 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { leases, leaseTenants, units, type NewLease } from "@/db/schema";
 import { leaseSchema, type FormState } from "@/lib/validation";
+import { deriveLeaseStatus } from "@/lib/lease-status";
 
 function toRow(
   input: ReturnType<typeof leaseSchema.parse>,
 ): Omit<NewLease, "unitId"> {
   return {
-    status: input.status,
     startDate: input.startDate,
     endDate: input.endDate ?? null,
     rentAmount: input.rentAmount?.toString() ?? null,
@@ -25,7 +25,6 @@ function validate(formData: FormData) {
   const raw = {
     unitId: formData.get("unitId") as string,
     tenantIds: formData.getAll("tenantIds") as string[],
-    status: formData.get("status") as string,
     startDate: formData.get("startDate") as string,
     endDate: formData.get("endDate") as string,
     rentAmount: formData.get("rentAmount") as string,
@@ -93,12 +92,30 @@ export async function endLease(
   id: string,
   propertyId: string,
 ): Promise<{ error: string } | { ok: true }> {
+  // Only an active lease can be ended: an upcoming lease hasn't started, and
+  // ending it would leave its end date before its start date. The button is
+  // hidden in those cases, but guard here too since it only passes an id.
+  const [lease] = await db
+    .select({ startDate: leases.startDate, endDate: leases.endDate })
+    .from(leases)
+    .where(eq(leases.id, id))
+    .limit(1);
+  if (!lease) {
+    return { error: "This lease no longer exists." };
+  }
+  if (deriveLeaseStatus(lease) !== "active") {
+    return { error: "Only an active lease can be ended." };
+  }
+
+  // Status is derived from the dates, so ending a lease just means capping its
+  // end date at today; since the end date is exclusive, it reads as "ended"
+  // immediately.
   const today = new Date().toISOString().slice(0, 10);
 
   try {
     await db
       .update(leases)
-      .set({ status: "ended", endDate: today, updatedAt: new Date() })
+      .set({ endDate: today, updatedAt: new Date() })
       .where(eq(leases.id, id));
   } catch {
     return { error: "Something went wrong ending this lease. Please try again." };

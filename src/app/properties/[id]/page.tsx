@@ -242,7 +242,7 @@ export default async function PropertyDetailPage({
                     </TableCell>
                     <TableCell align="right">
                       {currentLease ? (
-                        currentLease.status !== "ended" && (
+                        currentLease.status === "active" && (
                           <EndLeaseButton
                             id={currentLease.id}
                             propertyId={property.id}

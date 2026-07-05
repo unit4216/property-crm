@@ -5,6 +5,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { getSessionId } from "@/lib/session";
 import { leases, leaseTenants, tenants, type NewTenant } from "@/db/schema";
+import { leaseIsActive } from "@/db/queries";
 import { tenantSchema, type FormState } from "@/lib/validation";
 
 function toRow(
@@ -101,7 +102,7 @@ export async function deleteTenant(
     .select({ id: leases.id })
     .from(leaseTenants)
     .innerJoin(leases, eq(leases.id, leaseTenants.leaseId))
-    .where(and(eq(leaseTenants.tenantId, id), eq(leases.status, "active")))
+    .where(and(eq(leaseTenants.tenantId, id), leaseIsActive))
     .limit(1);
   if (activeLease.length > 0) {
     return {

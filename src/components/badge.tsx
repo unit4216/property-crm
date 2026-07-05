@@ -1,5 +1,6 @@
-import type { Property, Lease } from "@/db/schema";
-import { PROPERTY_STATUSES, LEASE_STATUSES } from "@/lib/validation";
+import type { Property } from "@/db/schema";
+import { PROPERTY_STATUSES } from "@/lib/validation";
+import { LEASE_STATUSES, type LeaseStatus } from "@/lib/lease-status";
 
 // Dot colors per status. A single saturated hue reads as a quiet status
 // indicator next to a muted label — calmer than a filled pill in every row.
@@ -30,13 +31,13 @@ export function StatusBadge({ status }: { status: Property["status"] }) {
   );
 }
 
-const LEASE_STATUS_DOT_COLORS: Record<Lease["status"], string> = {
+const LEASE_STATUS_DOT_COLORS: Record<LeaseStatus, string> = {
   active: "#059669", // emerald
   upcoming: "#0284c7", // sky
   ended: "#737373", // neutral
 };
 
-export function LeaseStatusBadge({ status }: { status: Lease["status"] }) {
+export function LeaseStatusBadge({ status }: { status: LeaseStatus }) {
   return (
     <StatusDot
       color={LEASE_STATUS_DOT_COLORS[status]}

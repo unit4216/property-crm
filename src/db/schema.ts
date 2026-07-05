@@ -112,18 +112,13 @@ export const units = pgTable("units", {
 export type Unit = typeof units.$inferSelect;
 export type NewUnit = typeof units.$inferInsert;
 
-export const leaseStatusEnum = pgEnum("lease_status", [
-  "upcoming",
-  "active",
-  "ended",
-]);
-
+// A lease has no stored status column — its status ("upcoming" / "active" /
+// "ended") is derived from its start and end dates. See lib/lease-status.ts.
 export const leases = pgTable("leases", {
   id: uuid("id").primaryKey().defaultRandom(),
   unitId: uuid("unit_id")
     .notNull()
     .references(() => units.id, { onDelete: "cascade" }),
-  status: leaseStatusEnum("status").notNull().default("active"),
 
   startDate: date("start_date", { mode: "string" }).notNull(),
   endDate: date("end_date", { mode: "string" }),

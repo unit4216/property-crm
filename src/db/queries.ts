@@ -28,8 +28,15 @@ import {
   type Lease,
 } from "@/db/schema";
 import type { TableParams } from "@/lib/table-params";
+import { deriveLeaseStatus, type LeaseStatus } from "@/lib/lease-status";
 
 export type Paginated<T> = { rows: T[]; total: number };
+
+// SQL mirrors of the lease-status derivation in lib/lease-status.ts, for the
+// queries that must filter or sort by status in the database rather than in JS.
+// `current_date` and the exclusive end date match deriveLeaseStatus exactly.
+export const leaseIsActive = sql`${leases.startDate} <= current_date and (${leases.endDate} is null or ${leases.endDate} > current_date)`;
+const leaseStatusOrder = sql`case when ${leases.startDate} > current_date then 0 when ${leases.endDate} is not null and ${leases.endDate} <= current_date then 2 else 1 end`;
 
 // Maps a validated sort key to an ORDER BY clause. The key is already
 // whitelisted by parseTableParams, so a missing entry falls back to the column
@@ -105,7 +112,7 @@ export async function getPropertiesPage(
     })
     .from(leases)
     .innerJoin(units, eq(leases.unitId, units.id))
-    .where(eq(leases.status, "active"))
+    .where(leaseIsActive)
     .groupBy(units.propertyId)
     .as("active_rent");
 
@@ -196,10 +203,16 @@ export async function getTenantsPage(
   return { rows, total };
 }
 
-export type LeaseWithTenants = Lease & { tenants: Tenant[] };
+// Every fetched lease carries a derived `status` so callers can read
+// `lease.status` uniformly, even though it isn't a stored column.
+export type LeaseWithTenants = Lease & {
+  status: LeaseStatus;
+  tenants: Tenant[];
+};
 
 // Fetches the co-tenants for a set of leases in one query and groups them
-// back onto each lease, rather than issuing a query per lease.
+// back onto each lease, rather than issuing a query per lease. Also derives
+// each lease's status from its dates while it's building the result rows.
 async function attachTenants(leaseRows: Lease[]): Promise<LeaseWithTenants[]> {
   if (leaseRows.length === 0) return [];
 
@@ -217,7 +230,11 @@ async function attachTenants(leaseRows: Lease[]): Promise<LeaseWithTenants[]> {
     byLease.set(row.leaseId, list);
   }
 
-  return leaseRows.map((l) => ({ ...l, tenants: byLease.get(l.id) ?? [] }));
+  return leaseRows.map((l) => ({
+    ...l,
+    status: deriveLeaseStatus(l),
+    tenants: byLease.get(l.id) ?? [],
+  }));
 }
 
 export type LeaseWithUnitAndTenants = LeaseWithTenants & { unit: Unit };
@@ -238,10 +255,9 @@ export async function getPropertyLeases(
   return withTenants.map((lease, i) => ({ ...lease, unit: rows[i].unit }));
 }
 
-export type LeaseWithPropertyAndTenants = Lease & {
+export type LeaseWithPropertyAndTenants = LeaseWithTenants & {
   unit: Unit;
   property: Property;
-  tenants: Tenant[];
 };
 
 export async function getLease(id: string): Promise<LeaseWithPropertyAndTenants | null> {
@@ -280,11 +296,11 @@ export async function getAllLeases(): Promise<LeaseWithPropertyAndTenants[]> {
 
 // Tenant names aren't sortable here: they're a many-to-many aggregate, not a
 // column on the lease row. Everything else maps to a real column.
-const LEASE_SORT_COLUMNS: Record<string, PgColumn> = {
+const LEASE_SORT_COLUMNS: Record<string, PgColumn | SQL> = {
   property: properties.name,
   start: leases.startDate,
   rent: leases.rentAmount,
-  status: leases.status,
+  status: leaseStatusOrder,
 };
 
 export const LEASE_SORT_KEYS = Object.keys(LEASE_SORT_COLUMNS);
