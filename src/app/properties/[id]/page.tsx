@@ -6,6 +6,7 @@ import Stack from "@mui/material/Stack";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
+import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import {
@@ -163,71 +164,100 @@ export default async function PropertyDetailPage({
           </h2>
         </div>
 
-        <Stack spacing={2} sx={{ mt: 2 }}>
-          {units.map((unit) => {
-            const currentLease = currentLeaseByUnit.get(unit.id) ?? null;
-            return (
-              <Paper key={unit.id} variant="outlined" sx={{ p: 3 }}>
-                <div className="flex items-center justify-between gap-3">
-                  <h3 className="text-sm font-semibold">{unit.label}</h3>
-                  {currentLease && (
-                    <LeaseStatusBadge status={currentLease.status} />
-                  )}
-                </div>
-
-                {currentLease ? (
-                  <div className="mt-3">
-                    <p className="text-sm">
-                      {currentLease.tenants.map((t, i) => (
-                        <span key={t.id}>
-                          {i > 0 && ", "}
-                          <Link
-                            href={`/tenants/${t.id}`}
-                            className="font-medium hover:underline"
-                          >
-                            {t.name}
-                          </Link>
+        <Stack sx={{ mt: 2, bgcolor: "var(--surface)", overflowX: "auto" }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Unit</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Tenant</TableCell>
+                <TableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
+                  Term
+                </TableCell>
+                <TableCell align="right">Rent</TableCell>
+                <TableCell align="right" />
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {units.map((unit) => {
+                const currentLease = currentLeaseByUnit.get(unit.id) ?? null;
+                return (
+                  <TableRow key={unit.id} hover>
+                    <TableCell>
+                      <span className="text-sm font-semibold">
+                        {unit.label}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {currentLease ? (
+                        <LeaseStatusBadge status={currentLease.status} />
+                      ) : (
+                        <span className="text-sm text-ink-muted">Vacant</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {currentLease ? (
+                        <span className="text-sm">
+                          {currentLease.tenants.map((t, i) => (
+                            <span key={t.id}>
+                              {i > 0 && ", "}
+                              <Link
+                                href={`/tenants/${t.id}`}
+                                className="font-medium hover:underline"
+                              >
+                                {t.name}
+                              </Link>
+                            </span>
+                          ))}
                         </span>
-                      ))}
-                    </p>
-                    <p className="mt-1 text-sm text-ink-muted">
-                      {formatDate(new Date(currentLease.startDate))} –{" "}
-                      {currentLease.endDate
-                        ? formatDate(new Date(currentLease.endDate))
-                        : "present"}
-                      {" · "}
-                      {formatMoney(currentLease.rentAmount)}/mo
-                      {currentLease.depositAmount &&
-                        ` · ${formatMoney(currentLease.depositAmount)} deposit`}
-                    </p>
-                    {currentLease.status !== "ended" && (
-                      <div className="mt-3">
-                        <EndLeaseButton
-                          id={currentLease.id}
-                          propertyId={property.id}
-                        />
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="mt-3">
-                    <p className="text-sm text-ink-muted">No active lease.</p>
-                    <Link
-                      href={`/properties/${property.id}/lease/new?unit=${unit.id}`}
-                    >
-                      <Button
-                        variant="contained"
-                        component="span"
-                        sx={{ mt: 1.5 }}
-                      >
-                        Start lease
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-              </Paper>
-            );
-          })}
+                      ) : (
+                        <span className="text-sm text-ink-faint">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
+                      {currentLease ? (
+                        <span className="text-sm text-ink-muted">
+                          {formatDate(new Date(currentLease.startDate))} –{" "}
+                          {currentLease.endDate
+                            ? formatDate(new Date(currentLease.endDate))
+                            : "present"}
+                        </span>
+                      ) : (
+                        <span className="text-sm text-ink-faint">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell align="right">
+                      {currentLease ? (
+                        <span className="text-sm tabular-nums">
+                          {formatMoney(currentLease.rentAmount)}/mo
+                        </span>
+                      ) : (
+                        <span className="text-sm text-ink-faint">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell align="right">
+                      {currentLease ? (
+                        currentLease.status !== "ended" && (
+                          <EndLeaseButton
+                            id={currentLease.id}
+                            propertyId={property.id}
+                          />
+                        )
+                      ) : (
+                        <Link
+                          href={`/properties/${property.id}/lease/new?unit=${unit.id}`}
+                        >
+                          <Button variant="contained" size="small" component="span">
+                            Start lease
+                          </Button>
+                        </Link>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
         </Stack>
       </section>
 
