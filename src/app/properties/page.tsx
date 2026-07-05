@@ -62,7 +62,6 @@ const columns: Column<Property>[] = [
     key: "status",
     header: "Status",
     sortable: true,
-    align: "right",
     hideBelow: "sm",
     render: (p) => <StatusBadge status={p.status} />,
   },

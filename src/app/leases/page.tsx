@@ -64,7 +64,6 @@ const columns: Column<LeaseWithPropertyAndTenants>[] = [
     key: "status",
     header: "Status",
     sortable: true,
-    align: "right",
     render: (lease) => <LeaseStatusBadge status={lease.status} />,
   },
 ];
