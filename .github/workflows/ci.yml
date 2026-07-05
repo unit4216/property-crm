@@ -1,0 +1,57 @@
+name: CI
+
+# Gate every push and PR on lint + the two test suites. A failing job here
+# marks the check as failed, which blocks merges once the check is required
+# in the repo's branch-protection settings (Settings > Branches).
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  unit:
+    name: Lint & unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+
+  e2e:
+    name: End-to-end tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: property_crm
+        ports:
+          - 5432:5432
+        # Wait until Postgres is accepting connections before the job runs.
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/property_crm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+      - name: Apply database migrations
+        run: npm run db:migrate
+      - name: Run Playwright tests
+        run: npm run test:e2e
