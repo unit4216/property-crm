@@ -48,14 +48,22 @@ export async function createLease(
     };
   }
 
-  const [lease] = await db
-    .insert(leases)
-    .values({ propertyId, ...toRow(parsed.data) })
-    .returning();
+  try {
+    const [lease] = await db
+      .insert(leases)
+      .values({ propertyId, ...toRow(parsed.data) })
+      .returning();
 
-  await db
-    .insert(leaseTenants)
-    .values(parsed.data.tenantIds.map((tenantId) => ({ leaseId: lease.id, tenantId })));
+    await db
+      .insert(leaseTenants)
+      .values(parsed.data.tenantIds.map((tenantId) => ({ leaseId: lease.id, tenantId })));
+  } catch {
+    return {
+      ok: false,
+      message: "Something went wrong saving this lease. Please try again.",
+      values: raw,
+    };
+  }
 
   revalidatePath("/");
   revalidatePath(`/properties/${propertyId}`);
@@ -63,13 +71,20 @@ export async function createLease(
   redirect(`/properties/${propertyId}`);
 }
 
-export async function endLease(id: string, propertyId: string): Promise<void> {
+export async function endLease(
+  id: string,
+  propertyId: string,
+): Promise<{ error: string } | void> {
   const today = new Date().toISOString().slice(0, 10);
 
-  await db
-    .update(leases)
-    .set({ status: "ended", endDate: today, updatedAt: new Date() })
-    .where(eq(leases.id, id));
+  try {
+    await db
+      .update(leases)
+      .set({ status: "ended", endDate: today, updatedAt: new Date() })
+      .where(eq(leases.id, id));
+  } catch {
+    return { error: "Something went wrong ending this lease. Please try again." };
+  }
 
   revalidatePath("/");
   revalidatePath(`/properties/${propertyId}`);

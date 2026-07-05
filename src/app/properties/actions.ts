@@ -53,7 +53,15 @@ export async function createProperty(
   }
 
   const sessionId = await getSessionId();
-  await db.insert(properties).values({ ...toRow(parsed.data), sessionId });
+  try {
+    await db.insert(properties).values({ ...toRow(parsed.data), sessionId });
+  } catch {
+    return {
+      ok: false,
+      message: "Something went wrong saving this property. Please try again.",
+      values: raw,
+    };
+  }
 
   revalidatePath("/");
   revalidatePath("/properties");
@@ -76,10 +84,18 @@ export async function updateProperty(
   }
 
   const sessionId = await getSessionId();
-  await db
-    .update(properties)
-    .set({ ...toRow(parsed.data), updatedAt: new Date() })
-    .where(and(eq(properties.id, id), eq(properties.sessionId, sessionId)));
+  try {
+    await db
+      .update(properties)
+      .set({ ...toRow(parsed.data), updatedAt: new Date() })
+      .where(and(eq(properties.id, id), eq(properties.sessionId, sessionId)));
+  } catch {
+    return {
+      ok: false,
+      message: "Something went wrong saving this property. Please try again.",
+      values: raw,
+    };
+  }
 
   revalidatePath("/");
   revalidatePath("/properties");
@@ -105,9 +121,14 @@ export async function deleteProperty(
     };
   }
 
-  await db
-    .delete(properties)
-    .where(and(eq(properties.id, id), eq(properties.sessionId, sessionId)));
+  try {
+    await db
+      .delete(properties)
+      .where(and(eq(properties.id, id), eq(properties.sessionId, sessionId)));
+  } catch {
+    return { error: "Something went wrong deleting this property. Please try again." };
+  }
+
   revalidatePath("/");
   revalidatePath("/properties");
   redirect("/properties");

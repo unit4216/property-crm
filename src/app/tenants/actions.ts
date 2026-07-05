@@ -42,7 +42,15 @@ export async function createTenant(
   }
 
   const sessionId = await getSessionId();
-  await db.insert(tenants).values({ ...toRow(parsed.data), sessionId });
+  try {
+    await db.insert(tenants).values({ ...toRow(parsed.data), sessionId });
+  } catch {
+    return {
+      ok: false,
+      message: "Something went wrong saving this tenant. Please try again.",
+      values: raw,
+    };
+  }
 
   revalidatePath("/");
   revalidatePath("/tenants");
@@ -65,10 +73,18 @@ export async function updateTenant(
   }
 
   const sessionId = await getSessionId();
-  await db
-    .update(tenants)
-    .set({ ...toRow(parsed.data), updatedAt: new Date() })
-    .where(and(eq(tenants.id, id), eq(tenants.sessionId, sessionId)));
+  try {
+    await db
+      .update(tenants)
+      .set({ ...toRow(parsed.data), updatedAt: new Date() })
+      .where(and(eq(tenants.id, id), eq(tenants.sessionId, sessionId)));
+  } catch {
+    return {
+      ok: false,
+      message: "Something went wrong saving this tenant. Please try again.",
+      values: raw,
+    };
+  }
 
   revalidatePath("/tenants");
   revalidatePath(`/tenants/${id}`);
@@ -94,9 +110,14 @@ export async function deleteTenant(
     };
   }
 
-  await db
-    .delete(tenants)
-    .where(and(eq(tenants.id, id), eq(tenants.sessionId, sessionId)));
+  try {
+    await db
+      .delete(tenants)
+      .where(and(eq(tenants.id, id), eq(tenants.sessionId, sessionId)));
+  } catch {
+    return { error: "Something went wrong deleting this tenant. Please try again." };
+  }
+
   revalidatePath("/");
   revalidatePath("/tenants");
   redirect("/tenants");
