@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import Button from "@mui/material/Button";
 import Alert from "@mui/material/Alert";
 import Tooltip from "@mui/material/Tooltip";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { successButtonSx } from "@/components/success-button-sx";
 import { deleteTenant } from "./actions";
 
 export function DeleteTenantButton({
@@ -16,8 +18,10 @@ export function DeleteTenantButton({
   name: string;
   blocked?: boolean;
 }) {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [deleted, setDeleted] = useState(false);
 
   if (blocked) {
     return (
@@ -43,7 +47,12 @@ export function DeleteTenantButton({
         onConfirm={() =>
           startTransition(async () => {
             const result = await deleteTenant(id);
-            if (result?.error) setError(result.error);
+            if ("error" in result) {
+              setError(result.error);
+            } else {
+              setDeleted(true);
+              setTimeout(() => router.push("/tenants"), 700);
+            }
           })
         }
         trigger={(open) => (
@@ -52,8 +61,10 @@ export function DeleteTenantButton({
             color="error"
             onClick={open}
             loading={pending}
+            disabled={deleted}
+            sx={deleted ? successButtonSx : undefined}
           >
-            {pending ? "Deleting…" : "Delete"}
+            {deleted ? "Deleted" : pending ? "Deleting…" : "Delete"}
           </Button>
         )}
       />

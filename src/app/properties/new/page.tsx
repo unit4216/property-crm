@@ -17,6 +17,7 @@ export default function NewPropertyPage() {
         action={createProperty}
         submitLabel="Create property"
         cancelHref="/"
+        successHref="/properties"
       />
     </div>
   );

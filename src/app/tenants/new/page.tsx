@@ -17,6 +17,7 @@ export default function NewTenantPage() {
         action={createTenant}
         submitLabel="Create tenant"
         cancelHref="/tenants"
+        successHref="/tenants"
       />
     </div>
   );

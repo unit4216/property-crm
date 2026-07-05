@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { getSessionId } from "@/lib/session";
@@ -54,7 +53,7 @@ export async function createTenant(
 
   revalidatePath("/");
   revalidatePath("/tenants");
-  redirect("/tenants");
+  return { ok: true };
 }
 
 export async function updateTenant(
@@ -88,12 +87,12 @@ export async function updateTenant(
 
   revalidatePath("/tenants");
   revalidatePath(`/tenants/${id}`);
-  redirect(`/tenants/${id}`);
+  return { ok: true };
 }
 
 export async function deleteTenant(
   id: string,
-): Promise<{ error: string } | void> {
+): Promise<{ error: string } | { ok: true }> {
   const sessionId = await getSessionId();
 
   // Refuse to delete while the tenant is on an active lease — the lease must
@@ -120,5 +119,5 @@ export async function deleteTenant(
 
   revalidatePath("/");
   revalidatePath("/tenants");
-  redirect("/tenants");
+  return { ok: true };
 }

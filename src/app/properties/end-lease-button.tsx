@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Button from "@mui/material/Button";
 import Alert from "@mui/material/Alert";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { successButtonSx } from "@/components/success-button-sx";
 import { endLease } from "./lease-actions";
 
 export function EndLeaseButton({
@@ -15,6 +16,7 @@ export function EndLeaseButton({
 }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [ended, setEnded] = useState(false);
 
   return (
     <>
@@ -27,12 +29,22 @@ export function EndLeaseButton({
         onConfirm={() =>
           startTransition(async () => {
             const result = await endLease(id, propertyId);
-            if (result?.error) setError(result.error);
+            if ("error" in result) {
+              setError(result.error);
+            } else {
+              setEnded(true);
+            }
           })
         }
         trigger={(open) => (
-          <Button variant="outlined" onClick={open} loading={pending}>
-            {pending ? "Ending…" : "End lease"}
+          <Button
+            variant="outlined"
+            onClick={open}
+            loading={pending}
+            disabled={ended}
+            sx={ended ? successButtonSx : undefined}
+          >
+            {ended ? "Ended" : pending ? "Ending…" : "End lease"}
           </Button>
         )}
       />

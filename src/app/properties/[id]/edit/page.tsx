@@ -35,6 +35,7 @@ export default async function EditPropertyPage({
         property={property}
         submitLabel="Save changes"
         cancelHref={`/properties/${property.id}`}
+        successHref={`/properties/${property.id}`}
       />
     </div>
   );

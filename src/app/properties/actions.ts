@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { getSessionId } from "@/lib/session";
@@ -65,7 +64,7 @@ export async function createProperty(
 
   revalidatePath("/");
   revalidatePath("/properties");
-  redirect("/properties");
+  return { ok: true };
 }
 
 export async function updateProperty(
@@ -100,12 +99,12 @@ export async function updateProperty(
   revalidatePath("/");
   revalidatePath("/properties");
   revalidatePath(`/properties/${id}`);
-  redirect(`/properties/${id}`);
+  return { ok: true };
 }
 
 export async function deleteProperty(
   id: string,
-): Promise<{ error: string } | void> {
+): Promise<{ error: string } | { ok: true }> {
   const sessionId = await getSessionId();
 
   // Refuse to delete while an active lease is on the property — the lease
@@ -131,5 +130,5 @@ export async function deleteProperty(
 
   revalidatePath("/");
   revalidatePath("/properties");
-  redirect("/properties");
+  return { ok: true };
 }

@@ -34,6 +34,7 @@ export default async function EditTenantPage({
         tenant={tenant}
         submitLabel="Save changes"
         cancelHref={`/tenants/${tenant.id}`}
+        successHref={`/tenants/${tenant.id}`}
       />
     </div>
   );

@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { leases, leaseTenants, type NewLease } from "@/db/schema";
@@ -68,13 +67,13 @@ export async function createLease(
   revalidatePath("/");
   revalidatePath(`/properties/${propertyId}`);
   revalidatePath("/leases");
-  redirect(`/properties/${propertyId}`);
+  return { ok: true };
 }
 
 export async function endLease(
   id: string,
   propertyId: string,
-): Promise<{ error: string } | void> {
+): Promise<{ error: string } | { ok: true }> {
   const today = new Date().toISOString().slice(0, 10);
 
   try {
@@ -90,4 +89,5 @@ export async function endLease(
   revalidatePath(`/properties/${propertyId}`);
   revalidatePath("/tenants");
   revalidatePath("/leases");
+  return { ok: true };
 }
