@@ -9,7 +9,7 @@ import { EndLeaseButton } from "../../properties/end-lease-button";
 
 export const dynamic = "force-dynamic";
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
       <Typography
@@ -60,12 +60,6 @@ export default async function LeaseDetailPage({
             <LeaseStatusBadge status={lease.status} />
           </div>
           <p className="mt-1 text-ink-muted">
-            <Link href={`/properties/${lease.property.id}`} className="hover:underline">
-              {lease.property.name}
-            </Link>
-            {" · "}
-            {lease.unit.label}
-            {" · "}
             {formatAddressLine(lease.property)} · {formatCityLine(lease.property)}
           </p>
         </div>
@@ -76,11 +70,26 @@ export default async function LeaseDetailPage({
 
       <dl className="mt-6 flex flex-wrap gap-8">
         <Stat
+          label="Property"
+          value={
+            <Link
+              href={`/properties/${lease.property.id}`}
+              className="hover:underline"
+            >
+              {lease.property.name}
+            </Link>
+          }
+        />
+        <Stat label="Unit" value={lease.unit.label} />
+        <Stat
           label="Dates"
           value={`${formatDate(new Date(lease.startDate))} – ${
             lease.endDate ? formatDate(new Date(lease.endDate)) : "present"
           }`}
         />
+      </dl>
+
+      <dl className="mt-6 flex flex-wrap gap-8">
         <Stat label="Rent / mo" value={formatMoney(lease.rentAmount)} />
         <Stat label="Deposit" value={formatMoney(lease.depositAmount)} />
       </dl>
