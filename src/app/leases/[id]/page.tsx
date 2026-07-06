@@ -48,10 +48,12 @@ export default async function LeaseDetailPage({
 
   return (
     <div>
+      {/* Back link */}
       <Link href="/leases" className="text-sm text-ink-muted hover:text-ink">
         ← Back to leases
       </Link>
 
+      {/* Header: tenant names, status badge, address, and the end-lease action */}
       <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
@@ -69,6 +71,7 @@ export default async function LeaseDetailPage({
         )}
       </div>
 
+      {/* Key facts: property, unit, and lease term */}
       <dl className="mt-6 flex flex-wrap gap-8">
         <Stat
           label="Property"
@@ -90,11 +93,13 @@ export default async function LeaseDetailPage({
         />
       </dl>
 
+      {/* Money: monthly rent and deposit */}
       <dl className="mt-6 flex flex-wrap gap-8">
         <Stat label="Rent / mo" value={formatMoney(lease.rentAmount)} />
         <Stat label="Deposit" value={formatMoney(lease.depositAmount)} />
       </dl>
 
+      {/* Tenants on this lease */}
       <Paper component="section" variant="outlined" sx={{ mt: 3, p: 3 }}>
         <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
           Tenants
@@ -114,6 +119,7 @@ export default async function LeaseDetailPage({
         )}
       </Paper>
 
+      {/* Notes (optional) */}
       {lease.notes && (
         <Paper component="section" variant="outlined" sx={{ mt: 3, p: 3 }}>
           <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
@@ -123,6 +129,7 @@ export default async function LeaseDetailPage({
         </Paper>
       )}
 
+      {/* Record metadata: created / last updated */}
       <p className="mt-6 text-xs text-ink-faint">
         Added <LocalTime iso={lease.createdAt.toISOString()} mode="date" /> ·{" "}
         Updated <LocalTime iso={lease.updatedAt.toISOString()} mode="date" />
