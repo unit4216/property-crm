@@ -76,6 +76,49 @@ function validate(formData: FormData) {
   return { raw, parsed: propertySchema.safeParse(raw) };
 }
 
+type ParsedForm = {
+  row: Omit<NewProperty, "sessionId">;
+  units: UnitRow[];
+  // The raw string values, to echo back into the form if the DB write fails.
+  raw: Record<string, string>;
+};
+
+// Validates the property fields and unit rows together. On failure returns an
+// error FormState ready to return as-is; on success returns the mapped DB row,
+// unit rows, and raw values. Used by both create and update.
+function validateForm(
+  formData: FormData,
+): { error: FormState } | { data: ParsedForm } {
+  const { raw, parsed } = validate(formData);
+  const unitParse = parseUnitRows(formData);
+  if (!parsed.success || "error" in unitParse) {
+    return {
+      error: {
+        ok: false,
+        message: "Please fix the errors below.",
+        fieldErrors: {
+          ...(parsed.success ? {} : parsed.error.flatten().fieldErrors),
+          ...("error" in unitParse ? { units: [unitParse.error] } : {}),
+        },
+        values: raw,
+      },
+    };
+  }
+  return { data: { row: toRow(parsed.data), units: unitParse.rows, raw } };
+}
+
+// True if any of the property's units has an active or upcoming lease. Shared
+// by the delete and mark-sold guards.
+async function hasOpenLease(propertyId: string): Promise<boolean> {
+  const rows = await db
+    .select({ id: leases.id })
+    .from(leases)
+    .innerJoin(units, eq(leases.unitId, units.id))
+    .where(and(eq(units.propertyId, propertyId), leaseNotEnded))
+    .limit(1);
+  return rows.length > 0;
+}
+
 // Server action: creates a property and its units for the current session from
 // the submitted form. Returns field errors on invalid input; the property row
 // and its unit rows are inserted together.
@@ -83,30 +126,20 @@ export async function createProperty(
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { raw, parsed } = validate(formData);
-  const unitParse = parseUnitRows(formData);
-  if (!parsed.success || "error" in unitParse) {
-    return {
-      ok: false,
-      message: "Please fix the errors below.",
-      fieldErrors: {
-        ...(parsed.success ? {} : parsed.error.flatten().fieldErrors),
-        ...("error" in unitParse ? { units: [unitParse.error] } : {}),
-      },
-      values: raw,
-    };
-  }
+  const result = validateForm(formData);
+  if ("error" in result) return result.error;
+  const { row, units: unitRows, raw } = result.data;
 
   const sessionId = await getSessionId();
   try {
     const [property] = await db
       .insert(properties)
-      .values({ ...toRow(parsed.data), sessionId })
+      .values({ ...row, sessionId })
       .returning({ id: properties.id });
 
     await db
       .insert(units)
-      .values(unitParse.rows.map((r) => ({ propertyId: property.id, label: r.label })));
+      .values(unitRows.map((r) => ({ propertyId: property.id, label: r.label })));
   } catch {
     return {
       ok: false,
@@ -128,19 +161,9 @@ export async function updateProperty(
   _prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { raw, parsed } = validate(formData);
-  const unitParse = parseUnitRows(formData);
-  if (!parsed.success || "error" in unitParse) {
-    return {
-      ok: false,
-      message: "Please fix the errors below.",
-      fieldErrors: {
-        ...(parsed.success ? {} : parsed.error.flatten().fieldErrors),
-        ...("error" in unitParse ? { units: [unitParse.error] } : {}),
-      },
-      values: raw,
-    };
-  }
+  const result = validateForm(formData);
+  if ("error" in result) return result.error;
+  const { row, units: unitRows, raw } = result.data;
 
   const sessionId = await getSessionId();
 
@@ -153,7 +176,7 @@ export async function updateProperty(
     .where(eq(units.propertyId, id));
   const existingIds = new Set(existing.map((u) => u.id));
   const keptIds = new Set(
-    unitParse.rows.filter((r) => r.id && existingIds.has(r.id)).map((r) => r.id!),
+    unitRows.filter((r) => r.id && existingIds.has(r.id)).map((r) => r.id!),
   );
   const toDelete = existing.filter((u) => !keptIds.has(u.id)).map((u) => u.id);
 
@@ -178,20 +201,20 @@ export async function updateProperty(
   try {
     await db
       .update(properties)
-      .set({ ...toRow(parsed.data), updatedAt: new Date() })
+      .set({ ...row, updatedAt: new Date() })
       .where(and(eq(properties.id, id), eq(properties.sessionId, sessionId)));
 
     if (toDelete.length > 0) {
       await db.delete(units).where(inArray(units.id, toDelete));
     }
-    for (const row of unitParse.rows) {
-      if (row.id && existingIds.has(row.id)) {
+    for (const unitRow of unitRows) {
+      if (unitRow.id && existingIds.has(unitRow.id)) {
         await db
           .update(units)
-          .set({ label: row.label, updatedAt: new Date() })
-          .where(and(eq(units.id, row.id), eq(units.propertyId, id)));
+          .set({ label: unitRow.label, updatedAt: new Date() })
+          .where(and(eq(units.id, unitRow.id), eq(units.propertyId, id)));
       } else {
-        await db.insert(units).values({ propertyId: id, label: row.label });
+        await db.insert(units).values({ propertyId: id, label: unitRow.label });
       }
     }
   } catch {
@@ -216,14 +239,8 @@ export async function deleteProperty(
 ): Promise<{ error: string } | { ok: true }> {
   const sessionId = await getSessionId();
 
-  // Any not-yet-ended lease on one of the property's units blocks the delete.
-  const openLease = await db
-    .select({ id: leases.id })
-    .from(leases)
-    .innerJoin(units, eq(leases.unitId, units.id))
-    .where(and(eq(units.propertyId, id), leaseNotEnded))
-    .limit(1);
-  if (openLease.length > 0) {
+  // A not-yet-ended lease on any of the property's units blocks the delete.
+  if (await hasOpenLease(id)) {
     return {
       error:
         "Can't delete a property with an active or upcoming lease. End the lease first.",
@@ -251,13 +268,7 @@ export async function markPropertySold(
 ): Promise<{ error: string } | { ok: true }> {
   const sessionId = await getSessionId();
 
-  const openLease = await db
-    .select({ id: leases.id })
-    .from(leases)
-    .innerJoin(units, eq(leases.unitId, units.id))
-    .where(and(eq(units.propertyId, id), leaseNotEnded))
-    .limit(1);
-  if (openLease.length > 0) {
+  if (await hasOpenLease(id)) {
     return {
       error:
         "Can't mark a property sold while it has an active or upcoming lease. End the lease first.",
