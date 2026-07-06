@@ -36,7 +36,7 @@ export function MarkSoldButton({
           onConfirm={() =>
             startTransition(async () => {
               const result = await markPropertyActive(id);
-              if ("error" in result) setError(result.error);
+              if (!result.success) setError(result.message);
               else router.refresh();
             })
           }
@@ -78,7 +78,7 @@ export function MarkSoldButton({
         onConfirm={() =>
           startTransition(async () => {
             const result = await markPropertySold(id);
-            if ("error" in result) setError(result.error);
+            if (!result.success) setError(result.message);
             else router.refresh();
           })
         }

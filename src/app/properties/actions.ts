@@ -236,13 +236,14 @@ export async function updateProperty(
 // silently discarded.
 export async function deleteProperty(
   id: string,
-): Promise<{ error: string } | { ok: true }> {
+): Promise<{ success: boolean; message: string }> {
   const sessionId = await getSessionId();
 
   // A not-yet-ended lease on any of the property's units blocks the delete.
   if (await hasOpenLease(id)) {
     return {
-      error:
+      success: false,
+      message:
         "Can't delete a property with an active or upcoming lease. End the lease first.",
     };
   }
@@ -252,12 +253,15 @@ export async function deleteProperty(
       .delete(properties)
       .where(and(eq(properties.id, id), eq(properties.sessionId, sessionId)));
   } catch {
-    return { error: "Something went wrong deleting this property. Please try again." };
+    return {
+      success: false,
+      message: "Something went wrong deleting this property. Please try again.",
+    };
   }
 
   revalidatePath("/");
   revalidatePath("/properties");
-  return { ok: true };
+  return { success: true, message: "" };
 }
 
 // Marks a property "sold". Refused while any active or upcoming lease is on the
@@ -265,12 +269,13 @@ export async function deleteProperty(
 // the same open-lease guard as deleteProperty.
 export async function markPropertySold(
   id: string,
-): Promise<{ error: string } | { ok: true }> {
+): Promise<{ success: boolean; message: string }> {
   const sessionId = await getSessionId();
 
   if (await hasOpenLease(id)) {
     return {
-      error:
+      success: false,
+      message:
         "Can't mark a property sold while it has an active or upcoming lease. End the lease first.",
     };
   }
@@ -281,19 +286,22 @@ export async function markPropertySold(
       .set({ status: "sold", updatedAt: new Date() })
       .where(and(eq(properties.id, id), eq(properties.sessionId, sessionId)));
   } catch {
-    return { error: "Something went wrong updating this property. Please try again." };
+    return {
+      success: false,
+      message: "Something went wrong updating this property. Please try again.",
+    };
   }
 
   revalidatePath("/");
   revalidatePath("/properties");
   revalidatePath(`/properties/${id}`);
-  return { ok: true };
+  return { success: true, message: "" };
 }
 
 // Reverses a sale, returning a property to the active portfolio.
 export async function markPropertyActive(
   id: string,
-): Promise<{ error: string } | { ok: true }> {
+): Promise<{ success: boolean; message: string }> {
   const sessionId = await getSessionId();
 
   try {
@@ -302,11 +310,14 @@ export async function markPropertyActive(
       .set({ status: "active", updatedAt: new Date() })
       .where(and(eq(properties.id, id), eq(properties.sessionId, sessionId)));
   } catch {
-    return { error: "Something went wrong updating this property. Please try again." };
+    return {
+      success: false,
+      message: "Something went wrong updating this property. Please try again.",
+    };
   }
 
   revalidatePath("/");
   revalidatePath("/properties");
   revalidatePath(`/properties/${id}`);
-  return { ok: true };
+  return { success: true, message: "" };
 }

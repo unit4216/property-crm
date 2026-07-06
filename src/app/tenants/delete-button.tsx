@@ -48,8 +48,8 @@ export function DeleteTenantButton({
         onConfirm={() =>
           startTransition(async () => {
             const result = await deleteTenant(id);
-            if ("error" in result) {
-              setError(result.error);
+            if (!result.success) {
+              setError(result.message);
             } else {
               // Navigate away immediately: this button lives on the tenant's
               // detail page, and the server action triggers a re-render of the

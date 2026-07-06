@@ -30,8 +30,8 @@ export function EndLeaseButton({
         onConfirm={() =>
           startTransition(async () => {
             const result = await endLease(id, propertyId);
-            if ("error" in result) {
-              setError(result.error);
+            if (!result.success) {
+              setError(result.message);
             } else {
               setEnded(true);
             }

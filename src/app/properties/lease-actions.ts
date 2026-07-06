@@ -103,7 +103,7 @@ export async function createLease(
 export async function endLease(
   id: string,
   propertyId: string,
-): Promise<{ error: string } | { ok: true }> {
+): Promise<{ success: boolean; message: string }> {
   // Only an active lease can be ended: an upcoming lease hasn't started, and
   // ending it would leave its end date before its start date. The button is
   // hidden in those cases, but guard here too since it only passes an id.
@@ -113,10 +113,10 @@ export async function endLease(
     .where(eq(leases.id, id))
     .limit(1);
   if (!lease) {
-    return { error: "This lease no longer exists." };
+    return { success: false, message: "This lease no longer exists." };
   }
   if (deriveLeaseStatus(lease) !== "active") {
-    return { error: "Only an active lease can be ended." };
+    return { success: false, message: "Only an active lease can be ended." };
   }
 
   // Status is derived from the dates, so ending a lease just means capping its
@@ -130,12 +130,15 @@ export async function endLease(
       .set({ endDate: today, updatedAt: new Date() })
       .where(eq(leases.id, id));
   } catch {
-    return { error: "Something went wrong ending this lease. Please try again." };
+    return {
+      success: false,
+      message: "Something went wrong ending this lease. Please try again.",
+    };
   }
 
   revalidatePath("/");
   revalidatePath(`/properties/${propertyId}`);
   revalidatePath("/tenants");
   revalidatePath("/leases");
-  return { ok: true };
+  return { success: true, message: "" };
 }

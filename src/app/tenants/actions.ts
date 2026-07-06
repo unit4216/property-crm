@@ -93,7 +93,7 @@ export async function updateTenant(
 
 export async function deleteTenant(
   id: string,
-): Promise<{ error: string } | { ok: true }> {
+): Promise<{ success: boolean; message: string }> {
   const sessionId = await getSessionId();
 
   // Refuse to delete while the tenant is on an active or upcoming lease, so no
@@ -106,7 +106,8 @@ export async function deleteTenant(
     .limit(1);
   if (openLease.length > 0) {
     return {
-      error:
+      success: false,
+      message:
         "Can't delete a tenant on an active or upcoming lease. End the lease first.",
     };
   }
@@ -116,10 +117,13 @@ export async function deleteTenant(
       .delete(tenants)
       .where(and(eq(tenants.id, id), eq(tenants.sessionId, sessionId)));
   } catch {
-    return { error: "Something went wrong deleting this tenant. Please try again." };
+    return {
+      success: false,
+      message: "Something went wrong deleting this tenant. Please try again.",
+    };
   }
 
   revalidatePath("/");
   revalidatePath("/tenants");
-  return { ok: true };
+  return { success: true, message: "" };
 }

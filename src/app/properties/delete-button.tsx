@@ -48,8 +48,8 @@ export function DeleteButton({
         onConfirm={() =>
           startTransition(async () => {
             const result = await deleteProperty(id);
-            if ("error" in result) {
-              setError(result.error);
+            if (!result.success) {
+              setError(result.message);
             } else {
               // Navigate away immediately: this button lives on the property's
               // detail page, and the server action triggers a re-render of the
