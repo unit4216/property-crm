@@ -65,6 +65,9 @@ function toRow(
   };
 }
 
+// Parses the flat property fields into the raw string record (echoed back to
+// the form on error) and a Zod result. Unit rows are validated separately by
+// parseUnitRows.
 function validate(formData: FormData) {
   const raw = Object.fromEntries(formData.entries()) as Record<
     string,
@@ -73,6 +76,9 @@ function validate(formData: FormData) {
   return { raw, parsed: propertySchema.safeParse(raw) };
 }
 
+// Server action: creates a property and its units for the current session from
+// the submitted form. Returns field errors on invalid input; the property row
+// and its unit rows are inserted together.
 export async function createProperty(
   _prevState: FormState,
   formData: FormData,
@@ -114,6 +120,9 @@ export async function createProperty(
   return { ok: true };
 }
 
+// Server action: updates a property and reconciles its unit rows for the
+// current session. Returns field errors on invalid input, or when a removed
+// unit still has leases (which it refuses).
 export async function updateProperty(
   id: string,
   _prevState: FormState,
@@ -199,13 +208,15 @@ export async function updateProperty(
   return { ok: true };
 }
 
+// Server action: deletes a property for the current session. Refused while it
+// still has an active or upcoming lease, so no current or future tenancy is
+// silently discarded.
 export async function deleteProperty(
   id: string,
 ): Promise<{ error: string } | { ok: true }> {
   const sessionId = await getSessionId();
 
-  // Refuse to delete while an active or upcoming lease is on the property, so
-  // no current or future tenancy is silently discarded.
+  // Any not-yet-ended lease on one of the property's units blocks the delete.
   const openLease = await db
     .select({ id: leases.id })
     .from(leases)
