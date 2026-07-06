@@ -13,7 +13,8 @@ import { Avatar } from "@/components/avatar";
 import { PROPERTY_TYPES } from "@/lib/validation";
 import { formatAddressLine, formatCityLine, formatMoney } from "@/lib/format";
 import { LocalTime } from "@/components/local-time";
-import { DeleteButton } from "../delete-button";
+import { DeleteRecordButton } from "@/components/delete-record-button";
+import { deleteProperty } from "../actions";
 import { MarkSoldButton } from "../mark-sold-button";
 import { UnitsTable } from "./units-table";
 
@@ -134,9 +135,12 @@ export default async function PropertyDetailPage({
             status={property.status}
             blocked={hasOpenLease}
           />
-          <DeleteButton
+          <DeleteRecordButton
             id={property.id}
             name={property.name}
+            entity="property"
+            action={deleteProperty}
+            redirectTo="/properties"
             blocked={hasOpenLease}
           />
         </div>

@@ -11,7 +11,8 @@ import { getTenant, getTenantLeases } from "@/db/queries";
 import { LeaseStatusBadge } from "@/components/badge";
 import { Avatar } from "@/components/avatar";
 import { formatCityLine, formatDate, formatMoney } from "@/lib/format";
-import { DeleteTenantButton } from "../delete-button";
+import { DeleteRecordButton } from "@/components/delete-record-button";
+import { deleteTenant } from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -57,9 +58,12 @@ export default async function TenantDetailPage({
               Edit
             </Button>
           </Link>
-          <DeleteTenantButton
+          <DeleteRecordButton
             id={tenant.id}
             name={tenant.name}
+            entity="tenant"
+            action={deleteTenant}
+            redirectTo="/tenants"
             blocked={hasOpenLease}
           />
         </div>
