@@ -79,14 +79,25 @@ export async function getPropertyOccupancy(): Promise<PropertyOccupancy[]> {
     .groupBy(units.propertyId);
 }
 
-export const PROPERTY_SORT_KEYS = [
-  "name",
-  "type",
-  "location",
-  "status",
-  "rent",
-  "created",
-];
+// Sort key → column, in display order. `rent` sorts on the per-request
+// active-lease rent expression, which only exists inside getPropertiesPage, so
+// it's passed in. Keeping the map in one place lets PROPERTY_SORT_KEYS (the
+// parseTableParams whitelist) derive from it — the two can't drift out of sync.
+function propertySortColumns(
+  monthlyRent: SQL,
+): Record<string, PgColumn | SQL> {
+  return {
+    name: properties.name,
+    type: properties.type,
+    location: properties.city,
+    status: properties.status,
+    rent: monthlyRent,
+    created: properties.createdAt,
+  };
+}
+
+// The `sql` placeholder is only used to enumerate keys; it's never executed.
+export const PROPERTY_SORT_KEYS = Object.keys(propertySortColumns(sql`0`));
 
 // A property's monthly rent isn't stored — it's the income from its currently
 // active leases (summed across the property's units). Vacant properties, whose
@@ -111,14 +122,7 @@ export async function getPropertiesPage(
 
   const monthlyRent = sql<string>`coalesce(${activeRent.monthlyRent}, 0)`;
 
-  const sortColumns: Record<string, PgColumn | SQL> = {
-    name: properties.name,
-    type: properties.type,
-    location: properties.city,
-    status: properties.status,
-    rent: monthlyRent,
-    created: properties.createdAt,
-  };
+  const sortColumns = propertySortColumns(monthlyRent);
 
   const where = and(
     eq(properties.sessionId, sessionId),
