@@ -98,10 +98,12 @@ export default async function PropertyDetailPage({
 
   return (
     <div>
+      {/* Breadcrumb back to the list view */}
       <Link href="/properties" className="text-sm text-ink-muted hover:text-ink">
         ← Back to properties
       </Link>
 
+      {/* Header: identity (avatar, name, status, address) on the left, actions on the right */}
       <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-start gap-4">
           <Avatar name={property.name} size="lg" />
@@ -120,6 +122,7 @@ export default async function PropertyDetailPage({
             </p>
           </div>
         </div>
+        {/* Actions — Mark sold / Delete are disabled while a lease is still open */}
         <div className="flex items-center gap-3">
           <Link href={`/properties/${property.id}/edit`}>
             <Button variant="outlined" component="span">
@@ -139,6 +142,7 @@ export default async function PropertyDetailPage({
         </div>
       </div>
 
+      {/* At-a-glance stats — rent is derived (see monthlyRent), the rest come off the property */}
       <dl className="mt-6 flex flex-wrap gap-8">
         <Stat
           label="Rent / mo"
@@ -153,6 +157,7 @@ export default async function PropertyDetailPage({
         />
       </dl>
 
+      {/* Units section — heading singularizes/pluralizes with a count; table gets each unit's lease history */}
       <section className="mt-6">
         <div className="flex items-center justify-between">
           <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
@@ -163,6 +168,7 @@ export default async function PropertyDetailPage({
         <UnitsTable propertyId={property.id} rows={unitRows} />
       </section>
 
+      {/* Notes card — only rendered when notes exist; preserves author line breaks */}
       {property.notes && (
         <Paper component="section" variant="outlined" sx={{ mt: 3, p: 3 }}>
           <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
@@ -172,6 +178,7 @@ export default async function PropertyDetailPage({
         </Paper>
       )}
 
+      {/* Footer timestamps — rendered client-side in the viewer's local timezone */}
       <p className="mt-6 text-xs text-ink-faint">
         Added <LocalTime iso={property.createdAt.toISOString()} mode="date" /> ·
         Updated{" "}

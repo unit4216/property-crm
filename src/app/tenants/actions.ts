@@ -8,6 +8,7 @@ import { leases, leaseTenants, tenants, type NewTenant } from "@/db/schema";
 import { leaseNotEnded } from "@/db/queries";
 import { tenantSchema, type FormState } from "@/lib/validation";
 
+/** Map validated tenant form input to a database row, defaulting optional fields to null. */
 function toRow(
   input: ReturnType<typeof tenantSchema.parse>,
 ): Omit<NewTenant, "sessionId"> {
@@ -19,6 +20,7 @@ function toRow(
   };
 }
 
+/** Extract raw form fields and run them through the tenant schema, returning both the raw values and the parse result. */
 function validate(formData: FormData) {
   const raw = Object.fromEntries(formData.entries()) as Record<
     string,
@@ -27,6 +29,7 @@ function validate(formData: FormData) {
   return { raw, parsed: tenantSchema.safeParse(raw) };
 }
 
+/** Server action that validates and inserts a new tenant for the current session, returning form state with any errors. */
 export async function createTenant(
   _prevState: FormState,
   formData: FormData,
@@ -57,6 +60,7 @@ export async function createTenant(
   return { ok: true };
 }
 
+/** Server action that validates and updates an existing session-scoped tenant by id, returning form state with any errors. */
 export async function updateTenant(
   id: string,
   _prevState: FormState,
@@ -91,9 +95,10 @@ export async function updateTenant(
   return { ok: true };
 }
 
+/** Server action that deletes a session-scoped tenant, refusing while they are on an active or upcoming lease. */
 export async function deleteTenant(
   id: string,
-): Promise<{ error: string } | { ok: true }> {
+): Promise<{ success: boolean; message: string }> {
   const sessionId = await getSessionId();
 
   // Refuse to delete while the tenant is on an active or upcoming lease, so no
@@ -106,7 +111,8 @@ export async function deleteTenant(
     .limit(1);
   if (openLease.length > 0) {
     return {
-      error:
+      success: false,
+      message:
         "Can't delete a tenant on an active or upcoming lease. End the lease first.",
     };
   }
@@ -116,10 +122,13 @@ export async function deleteTenant(
       .delete(tenants)
       .where(and(eq(tenants.id, id), eq(tenants.sessionId, sessionId)));
   } catch {
-    return { error: "Something went wrong deleting this tenant. Please try again." };
+    return {
+      success: false,
+      message: "Something went wrong deleting this tenant. Please try again.",
+    };
   }
 
   revalidatePath("/");
   revalidatePath("/tenants");
-  return { ok: true };
+  return { success: true, message: "" };
 }

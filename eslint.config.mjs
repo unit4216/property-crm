@@ -13,6 +13,8 @@ const eslintConfig = defineConfig([
         "warn",
         { ignoreRestSiblings: true },
       ],
+      // Nested ternaries are hard to read — use flat control flow or a helper.
+      "no-nested-ternary": "error",
     },
   },
   // Override default ignores of eslint-config-next.

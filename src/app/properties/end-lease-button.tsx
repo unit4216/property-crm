@@ -5,6 +5,7 @@ import Button from "@mui/material/Button";
 import Alert from "@mui/material/Alert";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { successButtonSx } from "@/components/success-button-sx";
+import { actionButtonLabel } from "@/components/action-button-label";
 import { endLease } from "./lease-actions";
 
 export function EndLeaseButton({
@@ -29,8 +30,8 @@ export function EndLeaseButton({
         onConfirm={() =>
           startTransition(async () => {
             const result = await endLease(id, propertyId);
-            if ("error" in result) {
-              setError(result.error);
+            if (!result.success) {
+              setError(result.message);
             } else {
               setEnded(true);
             }
@@ -44,7 +45,11 @@ export function EndLeaseButton({
             disabled={ended}
             sx={ended ? successButtonSx : undefined}
           >
-            {ended ? "Ended" : pending ? "Ending…" : "End lease"}
+            {actionButtonLabel(ended, pending, {
+              done: "Ended",
+              pending: "Ending…",
+              idle: "End lease",
+            })}
           </Button>
         )}
       />

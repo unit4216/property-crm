@@ -14,6 +14,7 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import type { Property, Unit } from "@/db/schema";
 import { successButtonSx } from "@/components/success-button-sx";
+import { actionButtonLabel } from "@/components/action-button-label";
 import { CheckIcon } from "@/components/check-icon";
 import { PlusIcon } from "@/components/plus-icon";
 import {
@@ -355,7 +356,11 @@ export function PropertyForm({
             sx={saved ? successButtonSx : undefined}
             startIcon={saved ? <CheckIcon /> : undefined}
           >
-            {saved ? "Saved" : pending ? "Saving…" : submitLabel}
+            {actionButtonLabel(saved, pending, {
+              done: "Saved",
+              pending: "Saving…",
+              idle: submitLabel,
+            })}
           </Button>
           <Button variant="outlined" component={Link} href={cancelHref}>
             Cancel

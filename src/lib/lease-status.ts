@@ -1,6 +1,6 @@
 // A lease's status is never stored or set by hand — it's derived from where
 // today falls relative to its start and end dates, so it can't drift out of
-// sync with those dates. The SQL mirror of this logic lives in db/queries.ts
+// sync with those dates. The SQL mirror of this logic lives in db/queries/shared.ts
 // (for filtering active leases and sorting the leases table by status).
 
 export const LEASE_STATUS_VALUES = ["upcoming", "active", "ended"] as const;

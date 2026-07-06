@@ -10,6 +10,7 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import type { Tenant } from "@/db/schema";
 import { successButtonSx } from "@/components/success-button-sx";
+import { actionButtonLabel } from "@/components/action-button-label";
 import { CheckIcon } from "@/components/check-icon";
 import type { FormState } from "@/lib/validation";
 
@@ -126,7 +127,11 @@ export function TenantForm({
             sx={saved ? successButtonSx : undefined}
             startIcon={saved ? <CheckIcon /> : undefined}
           >
-            {saved ? "Saved" : pending ? "Saving…" : submitLabel}
+            {actionButtonLabel(saved, pending, {
+              done: "Saved",
+              pending: "Saving…",
+              idle: submitLabel,
+            })}
           </Button>
           <Button variant="outlined" component={Link} href={cancelHref}>
             Cancel

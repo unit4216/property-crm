@@ -16,6 +16,7 @@ import type { Tenant, Unit } from "@/db/schema";
 import { PlusIcon } from "@/components/plus-icon";
 import { CheckIcon } from "@/components/check-icon";
 import { successButtonSx } from "@/components/success-button-sx";
+import { actionButtonLabel } from "@/components/action-button-label";
 import { type FormState } from "@/lib/validation";
 
 type TenantRow = { key: number; tenantId: string | null };
@@ -294,7 +295,11 @@ export function LeaseForm({
             sx={saved ? successButtonSx : undefined}
             startIcon={saved ? <CheckIcon /> : undefined}
           >
-            {saved ? "Saved" : pending ? "Saving…" : "Start lease"}
+            {actionButtonLabel(saved, pending, {
+              done: "Saved",
+              pending: "Saving…",
+              idle: "Start lease",
+            })}
           </Button>
           <Button variant="outlined" component={Link} href={cancelHref}>
             Cancel
