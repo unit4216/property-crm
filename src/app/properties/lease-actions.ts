@@ -12,7 +12,12 @@ import {
   units,
   type NewLease,
 } from "@/db/schema";
-import { leaseSchema, type FormState } from "@/lib/validation";
+import {
+  leaseSchema,
+  formString,
+  formStrings,
+  type FormState,
+} from "@/lib/validation";
 import { deriveLeaseStatus } from "@/lib/lease-status";
 
 // Map validated form input to a lease row, coercing optional numbers to
@@ -38,13 +43,13 @@ function toRow(
 // but the last checked tenant — pull tenantIds out with getAll instead.
 function validate(formData: FormData) {
   const raw = {
-    unitId: formData.get("unitId") as string,
-    tenantIds: formData.getAll("tenantIds") as string[],
-    startDate: formData.get("startDate") as string,
-    endDate: formData.get("endDate") as string,
-    rentAmount: formData.get("rentAmount") as string,
-    depositAmount: formData.get("depositAmount") as string,
-    notes: formData.get("notes") as string,
+    unitId: formString(formData, "unitId"),
+    tenantIds: formStrings(formData, "tenantIds"),
+    startDate: formString(formData, "startDate"),
+    endDate: formString(formData, "endDate"),
+    rentAmount: formString(formData, "rentAmount"),
+    depositAmount: formString(formData, "depositAmount"),
+    notes: formString(formData, "notes"),
   };
   return { raw, parsed: leaseSchema.safeParse(raw) };
 }

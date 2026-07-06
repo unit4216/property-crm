@@ -6,7 +6,7 @@ import { db } from "@/db";
 import { getSessionId } from "@/lib/session";
 import { leases, leaseTenants, tenants, type NewTenant } from "@/db/schema";
 import { leaseNotEnded } from "@/db/queries";
-import { tenantSchema, type FormState } from "@/lib/validation";
+import { tenantSchema, formStringRecord, type FormState } from "@/lib/validation";
 
 /** Map validated tenant form input to a database row, defaulting optional fields to null. */
 function toRow(
@@ -22,10 +22,7 @@ function toRow(
 
 /** Extract raw form fields and run them through the tenant schema, returning both the raw values and the parse result. */
 function validate(formData: FormData) {
-  const raw = Object.fromEntries(formData.entries()) as Record<
-    string,
-    string
-  >;
+  const raw = formStringRecord(formData);
   return { raw, parsed: tenantSchema.safeParse(raw) };
 }
 

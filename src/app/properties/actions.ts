@@ -9,6 +9,8 @@ import { leaseNotEnded } from "@/db/queries";
 import {
   propertySchema,
   unitLabelSchema,
+  formStrings,
+  formStringRecord,
   type FormState,
 } from "@/lib/validation";
 
@@ -20,8 +22,8 @@ type UnitRow = { id: string | null; label: string };
 function parseUnitRows(
   formData: FormData,
 ): { rows: UnitRow[] } | { error: string } {
-  const ids = formData.getAll("unitId") as string[];
-  const labels = formData.getAll("unitLabel") as string[];
+  const ids = formStrings(formData, "unitId");
+  const labels = formStrings(formData, "unitLabel");
   const rows: UnitRow[] = [];
   const seen = new Set<string>();
 
@@ -69,10 +71,7 @@ function toRow(
 // the form on error) and a Zod result. Unit rows are validated separately by
 // parseUnitRows.
 function validate(formData: FormData) {
-  const raw = Object.fromEntries(formData.entries()) as Record<
-    string,
-    string
-  >;
+  const raw = formStringRecord(formData);
   return { raw, parsed: propertySchema.safeParse(raw) };
 }
 

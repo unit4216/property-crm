@@ -136,6 +136,27 @@ export const propertySchema = z.object({
 
 export type PropertyInput = z.infer<typeof propertySchema>;
 
+// FormData entries are `string | File`; the app's text inputs only ever produce
+// strings. These helpers drop the File (and, for `formString`, the missing)
+// case honestly rather than casting it away — a missing field reads as "" and a
+// non-string entry is ignored, so the schemas below get the strings they expect.
+export function formString(formData: FormData, key: string): string {
+  const value = formData.get(key);
+  return typeof value === "string" ? value : "";
+}
+
+export function formStrings(formData: FormData, key: string): string[] {
+  return formData.getAll(key).filter((v): v is string => typeof v === "string");
+}
+
+export function formStringRecord(formData: FormData): Record<string, string> {
+  const record: Record<string, string> = {};
+  for (const [key, value] of formData.entries()) {
+    if (typeof value === "string") record[key] = value;
+  }
+  return record;
+}
+
 // Shape returned by server actions, consumed by the client form via useActionState.
 // `values` echoes back what the user submitted so the form can restore it —
 // React resets native form actions after they settle, on both success and
