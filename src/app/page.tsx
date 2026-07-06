@@ -133,7 +133,7 @@ function ListCard({
   );
 }
 
-export default async function DashboardPage() {
+async function getDashboardData() {
   const [properties, tenants, leases, propertyOccupancy] = await Promise.all([
     getProperties(),
     getTenants(),
@@ -226,6 +226,38 @@ export default async function DashboardPage() {
   );
   const idleTenants = tenants.filter((t) => !tenantIdsWithActiveLease.has(t.id));
 
+  return {
+    totalProperties: properties.length,
+    totalTenants: tenants.length,
+    rentRoll,
+    activeLeaseCount,
+    occupancyRate,
+    occupancyTrend,
+    propertyTypeDataset,
+    propertyOccupancyData,
+    expiringLeases,
+    vacantProperties,
+    upcomingLeases,
+    idleTenants,
+  };
+}
+
+export default async function DashboardPage() {
+  const {
+    totalProperties,
+    totalTenants,
+    rentRoll,
+    activeLeaseCount,
+    occupancyRate,
+    occupancyTrend,
+    propertyTypeDataset,
+    propertyOccupancyData,
+    expiringLeases,
+    vacantProperties,
+    upcomingLeases,
+    idleTenants,
+  } = await getDashboardData();
+
   return (
     <div>
       <div className="flex items-start justify-between gap-4">
@@ -248,8 +280,8 @@ export default async function DashboardPage() {
           value={formatMoney(rentRoll.toString())}
           accent
         />
-        <StatTile label="Total properties" value={properties.length.toString()} />
-        <StatTile label="Total tenants" value={tenants.length.toString()} />
+        <StatTile label="Total properties" value={totalProperties.toString()} />
+        <StatTile label="Total tenants" value={totalTenants.toString()} />
         <StatTile label="Active leases" value={activeLeaseCount.toString()} />
         <StatTile label="Occupancy rate" value={`${occupancyRate}%`} />
       </div>
