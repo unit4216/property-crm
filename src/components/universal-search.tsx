@@ -7,7 +7,7 @@ import InputAdornment from "@mui/material/InputAdornment";
 import Paper from "@mui/material/Paper";
 import { searchAction } from "@/app/search-actions";
 import type { UniversalSearchResults } from "@/db/queries";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatPhone } from "@/lib/format";
 
 function SearchIcon() {
   return (
@@ -27,11 +27,17 @@ function SearchIcon() {
   );
 }
 
-const EMPTY_RESULTS: UniversalSearchResults = { properties: [], tenants: [], leases: [] };
+const EMPTY_RESULTS: UniversalSearchResults = {
+  properties: [],
+  tenants: [],
+  leases: [],
+};
 
 type Row = { href: string; primary: string; secondary: string };
 
-function toRows(results: UniversalSearchResults): { title: string; rows: Row[] }[] {
+function toRows(
+  results: UniversalSearchResults,
+): { title: string; rows: Row[] }[] {
   const groups = [
     {
       title: "Properties",
@@ -46,7 +52,8 @@ function toRows(results: UniversalSearchResults): { title: string; rows: Row[] }
       rows: results.tenants.map((t) => ({
         href: `/tenants/${t.id}`,
         primary: t.name,
-        secondary: t.email || t.phone || "No contact info",
+        secondary:
+          t.email || (t.phone && formatPhone(t.phone)) || "No contact info",
       })),
     },
     {
@@ -79,7 +86,10 @@ export function UniversalSearch() {
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
         setOpen(false);
       }
     }
@@ -161,15 +171,22 @@ export function UniversalSearch() {
                 </p>
                 <ul>
                   {group.rows.map((row) => (
-                    <li key={row.href} style={{ borderBottom: "1px solid var(--border)" }}>
+                    <li
+                      key={row.href}
+                      style={{ borderBottom: "1px solid var(--border)" }}
+                    >
                       <button
                         type="button"
                         onClick={() => onSelect(row.href)}
                         className="flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-2.5 text-left hover:bg-[var(--surface-muted)]"
                       >
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-medium">{row.primary}</p>
-                          <p className="truncate text-sm text-ink-muted">{row.secondary}</p>
+                          <p className="truncate text-sm font-medium">
+                            {row.primary}
+                          </p>
+                          <p className="truncate text-sm text-ink-muted">
+                            {row.secondary}
+                          </p>
                         </div>
                       </button>
                     </li>

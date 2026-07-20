@@ -7,6 +7,7 @@ import { TableSearch } from "@/components/table-search";
 import { Pagination } from "@/components/pagination";
 import { PlusIcon } from "@/components/plus-icon";
 import { parseTableParams, type RawSearchParams } from "@/lib/table-params";
+import { formatPhone } from "@/lib/format";
 import type { Tenant } from "@/db/schema";
 
 export const dynamic = "force-dynamic";
@@ -41,7 +42,9 @@ const columns: Column<Tenant>[] = [
     sortable: true,
     hideBelow: "md",
     render: (t) => (
-      <span className="truncate text-sm text-ink-muted">{t.phone ?? "—"}</span>
+      <span className="truncate text-sm text-ink-muted">
+        {formatPhone(t.phone)}
+      </span>
     ),
   },
   {

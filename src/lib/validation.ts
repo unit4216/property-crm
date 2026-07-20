@@ -106,6 +106,34 @@ const optionalEmail = z.preprocess(
   z.string().trim().email("Invalid email").optional(),
 );
 
+// Accepts a US phone number in any common shape — "(555) 123-4567",
+// "555.123.4567", "+1 5551234567" — and normalizes it to the 10 national
+// digits ("5551234567") for storage. An optional leading country code (1) is
+// stripped. Display formatting back to "(XXX) XXX-XXXX" happens at render time
+// via formatPhone, so the stored value stays canonical.
+const optionalPhone = z.preprocess(
+  emptyToUndefined,
+  z
+    .string()
+    .trim()
+    .transform((v, ctx) => {
+      const digits = v.replace(/\D/g, "");
+      const national =
+        digits.length === 11 && digits.startsWith("1")
+          ? digits.slice(1)
+          : digits;
+      if (national.length !== 10) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Enter a 10-digit US phone number",
+        });
+        return z.NEVER;
+      }
+      return national;
+    })
+    .optional(),
+);
+
 // `status` is intentionally absent: it isn't set through the property form.
 // New properties default to "active" (see the schema), and the only transition
 // — to "sold" — happens via the guarded markPropertySold action.
@@ -172,7 +200,7 @@ export const tenantSchema = z
   .object({
     name: z.string().trim().min(1, "Name is required").max(200),
     email: optionalEmail,
-    phone: optionalText,
+    phone: optionalPhone,
     notes: optionalText,
   })
   .superRefine((val, ctx) => {

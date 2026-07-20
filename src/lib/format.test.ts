@@ -4,6 +4,7 @@ import {
   formatAddressLine,
   formatCityLine,
   formatMoney,
+  formatPhone,
 } from "./format";
 
 describe("formatMoney", () => {
@@ -28,6 +29,24 @@ describe("formatMoney", () => {
   });
 });
 
+describe("formatPhone", () => {
+  it("formats 10 stored digits as (XXX) XXX-XXXX", () => {
+    expect(formatPhone("5551234567")).toBe("(555) 123-4567");
+  });
+
+  it("drops a leading US country code", () => {
+    expect(formatPhone("15551234567")).toBe("(555) 123-4567");
+  });
+
+  it("returns an em dash for null", () => {
+    expect(formatPhone(null)).toBe("—");
+  });
+
+  it("leaves a non-10-digit value untouched", () => {
+    expect(formatPhone("555-1234")).toBe("555-1234");
+  });
+});
+
 // formatAddressLine / formatCityLine only read a few fields; cast a partial.
 const property = (over: Partial<Property>): Property =>
   ({
@@ -41,9 +60,9 @@ const property = (over: Partial<Property>): Property =>
 
 describe("formatAddressLine", () => {
   it("joins line 1 and line 2 when both are present", () => {
-    expect(
-      formatAddressLine(property({ addressLine2: "Apt 4" })),
-    ).toBe("123 Oak St, Apt 4");
+    expect(formatAddressLine(property({ addressLine2: "Apt 4" }))).toBe(
+      "123 Oak St, Apt 4",
+    );
   });
 
   it("omits line 2 when it is null", () => {

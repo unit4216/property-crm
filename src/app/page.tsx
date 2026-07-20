@@ -17,7 +17,12 @@ import {
 import type { Property } from "@/db/schema";
 import { monthlyOccupancy } from "@/lib/occupancy";
 import { PROPERTY_TYPES } from "@/lib/validation";
-import { formatCityLine, formatDate, formatMoney } from "@/lib/format";
+import {
+  formatCityLine,
+  formatDate,
+  formatMoney,
+  formatPhone,
+} from "@/lib/format";
 
 // Always render fresh from the database.
 export const dynamic = "force-dynamic";
@@ -163,7 +168,9 @@ async function getDashboardData() {
 
   // Properties by type. Uses a shorter label than PROPERTY_TYPES for the
   // single-family case so it fits the lollipop's label column without eliding.
-  const propertyTypeDataset = (Object.keys(PROPERTY_TYPES) as Property["type"][])
+  const propertyTypeDataset = (
+    Object.keys(PROPERTY_TYPES) as Property["type"][]
+  )
     .map((type) => ({
       label: type === "single_family" ? "Single-family" : PROPERTY_TYPES[type],
       count: properties.filter((p) => p.type === type).length,
@@ -181,7 +188,11 @@ async function getDashboardData() {
   }
   const propertyOccupancyData = [
     { id: "full", value: occupancyBands.full, label: "Fully occupied" },
-    { id: "partial", value: occupancyBands.partial, label: "Partially occupied" },
+    {
+      id: "partial",
+      value: occupancyBands.partial,
+      label: "Partially occupied",
+    },
     { id: "vacant", value: occupancyBands.vacant, label: "Vacant" },
   ]
     .map((d) => ({
@@ -194,7 +205,10 @@ async function getDashboardData() {
   const expiryCutoff = daysFromNow(LEASE_EXPIRY_WINDOW_DAYS);
   const expiringLeases = leases
     .filter(
-      (l) => l.status === "active" && l.endDate && new Date(l.endDate) <= expiryCutoff,
+      (l) =>
+        l.status === "active" &&
+        l.endDate &&
+        new Date(l.endDate) <= expiryCutoff,
     )
     .sort(
       (a, b) => new Date(a.endDate!).getTime() - new Date(b.endDate!).getTime(),
@@ -216,7 +230,8 @@ async function getDashboardData() {
   const upcomingLeases = leases
     .filter((l) => l.status === "upcoming")
     .sort(
-      (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
+      (a, b) =>
+        new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
     );
 
   const tenantIdsWithActiveLease = new Set(
@@ -224,7 +239,9 @@ async function getDashboardData() {
       .filter((l) => l.status === "active")
       .flatMap((l) => l.tenants.map((t) => t.id)),
   );
-  const idleTenants = tenants.filter((t) => !tenantIdsWithActiveLease.has(t.id));
+  const idleTenants = tenants.filter(
+    (t) => !tenantIdsWithActiveLease.has(t.id),
+  );
 
   return {
     totalProperties: properties.length,
@@ -310,7 +327,8 @@ export default async function DashboardPage() {
             rows={expiringLeases.map((l) => ({
               href: `/properties/${l.property.id}`,
               primary: l.property.name,
-              secondary: l.tenants.map((t) => t.name).join(", ") || "No tenants",
+              secondary:
+                l.tenants.map((t) => t.name).join(", ") || "No tenants",
               meta: formatDate(new Date(l.endDate!)),
             }))}
           />
@@ -333,7 +351,8 @@ export default async function DashboardPage() {
             rows={upcomingLeases.map((l) => ({
               href: `/properties/${l.property.id}`,
               primary: l.property.name,
-              secondary: l.tenants.map((t) => t.name).join(", ") || "No tenants",
+              secondary:
+                l.tenants.map((t) => t.name).join(", ") || "No tenants",
               meta: formatDate(new Date(l.startDate)),
             }))}
           />
@@ -345,7 +364,10 @@ export default async function DashboardPage() {
             rows={idleTenants.map((t) => ({
               href: `/tenants/${t.id}`,
               primary: t.name,
-              secondary: t.email || t.phone || "No contact info",
+              secondary:
+                t.email ||
+                (t.phone && formatPhone(t.phone)) ||
+                "No contact info",
             }))}
           />
         </div>
