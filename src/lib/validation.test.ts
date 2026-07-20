@@ -64,8 +64,26 @@ describe("tenantSchema", () => {
 
   it("accepts a tenant with just a phone", () => {
     expect(
-      tenantSchema.safeParse({ name: "Sam", phone: "555-1234" }).success,
+      tenantSchema.safeParse({ name: "Sam", phone: "(555) 123-4567" }).success,
     ).toBe(true);
+  });
+
+  it("normalizes a formatted phone to 10 national digits", () => {
+    const r = tenantSchema.safeParse({ name: "Sam", phone: "(555) 123-4567" });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.phone).toBe("5551234567");
+  });
+
+  it("strips a leading US country code", () => {
+    const r = tenantSchema.safeParse({ name: "Sam", phone: "+1 555 123 4567" });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.phone).toBe("5551234567");
+  });
+
+  it("rejects a phone without 10 digits", () => {
+    expect(
+      tenantSchema.safeParse({ name: "Sam", phone: "555-1234" }).success,
+    ).toBe(false);
   });
 
   it("requires at least an email or a phone", () => {

@@ -10,7 +10,12 @@ import TableRow from "@mui/material/TableRow";
 import { getTenant, getTenantLeases } from "@/db/queries";
 import { LeaseStatusBadge } from "@/components/badge";
 import { Avatar } from "@/components/avatar";
-import { formatCityLine, formatDate, formatMoney } from "@/lib/format";
+import {
+  formatCityLine,
+  formatDate,
+  formatMoney,
+  formatPhone,
+} from "@/lib/format";
 import { DeleteRecordButton } from "@/components/delete-record-button";
 import { deleteTenant } from "../actions";
 
@@ -48,7 +53,9 @@ export default async function TenantDetailPage({
             </h1>
             <p className="mt-1 text-ink-muted">{tenant.email ?? "—"}</p>
             {tenant.phone && (
-              <p className="mt-0.5 text-sm text-ink-faint">{tenant.phone}</p>
+              <p className="mt-0.5 text-sm text-ink-faint">
+                {formatPhone(tenant.phone)}
+              </p>
             )}
           </div>
         </div>

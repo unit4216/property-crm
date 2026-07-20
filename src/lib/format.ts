@@ -59,6 +59,22 @@ export function formatInstant(
   }).format(value);
 }
 
+/**
+ * Formats a stored phone number as "(XXX) XXX-XXXX". Works off the digits, so
+ * it renders legacy rows saved as bare digits ("1234567891") the same as
+ * freshly-normalized ones. A leading US country code (1) is dropped. Anything
+ * that isn't a 10-digit US number is returned untouched rather than mangled;
+ * null/empty renders as an em dash, matching the other formatters.
+ */
+export function formatPhone(value: string | null): string {
+  if (!value) return "—";
+  const digits = value.replace(/\D/g, "");
+  const national =
+    digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
+  if (national.length !== 10) return value;
+  return `(${national.slice(0, 3)}) ${national.slice(3, 6)}-${national.slice(6)}`;
+}
+
 /** Single-line street address. */
 export function formatAddressLine(p: Property): string {
   return [p.addressLine1, p.addressLine2].filter(Boolean).join(", ");
